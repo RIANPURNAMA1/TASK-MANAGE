@@ -54,6 +54,7 @@ export function toCardSummary(row: CardSummaryRow): CardSummary {
     listId: row.listId,
     title: row.title,
     priority: row.priority,
+    startDate: row.startDate?.toISOString() ?? null,
     dueDate: row.dueDate?.toISOString() ?? null,
     position: row.position,
     completedAt: row.completedAt?.toISOString() ?? null,

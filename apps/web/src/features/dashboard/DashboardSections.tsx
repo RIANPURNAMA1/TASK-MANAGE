@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import {
@@ -9,6 +9,8 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   CircleDot,
   Inbox,
   Mail,
@@ -107,15 +109,11 @@ export function PanelLink({ to, children }: { to: string; children: ReactNode })
 
 type TileTone = 'brand' | 'danger' | 'warning' | 'success' | 'neutral';
 
-function StatTile({ label, value, icon, tone, hint }: { label: string; value: number; icon: ReactNode; tone: TileTone; hint?: ReactNode }) {
+function StatTile({ label, value, icon, hint }: { label: string; value: number; icon: ReactNode; tone?: TileTone; hint?: ReactNode }) {
   return (
     <div className="flex h-full items-start gap-4 rounded-2xl bg-surface p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-inset ring-line-subtle">
-      <span
-        className={clsx(
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-[0_6px_14px_-8px_rgba(15,23,42,0.45)] [&>svg]:h-5 [&>svg]:w-5',
-          SOLID[tone],
-        )}
-      >
+      {/* One calm color for every tile; urgency is carried by the number and hint, not the chip. */}
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-subtle text-brand [&>svg]:h-5 [&>svg]:w-5">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
@@ -445,12 +443,23 @@ function DueBadge({ dueDate }: { dueDate: string | null }) {
   );
 }
 
+const ACTIVITY_PAGE_SIZE = 5;
+
+/** Recent activity, paged so the panel stays short instead of growing down the page. */
 export function ActivityFeed({ items }: { items: DashboardActivityItem[] }) {
   const { openInProject } = useCardModal();
+  const [page, setPage] = useState(0);
   if (items.length === 0) return <EmptyLine>Belum ada aktivitas.</EmptyLine>;
+
+  const pageCount = Math.ceil(items.length / ACTIVITY_PAGE_SIZE);
+  // The feed refetches every minute and can shrink; never stay on a page that no longer exists.
+  const current = Math.min(page, pageCount - 1);
+  const visible = items.slice(current * ACTIVITY_PAGE_SIZE, (current + 1) * ACTIVITY_PAGE_SIZE);
+
   return (
+    <>
     <ol className="relative space-y-4 px-5 py-4">
-      {items.map((a) => {
+      {visible.map((a) => {
         const body = (
           <>
             <span className="font-semibold text-ink">{a.actor.name}</span> {activitySentence(a)}
@@ -488,6 +497,37 @@ export function ActivityFeed({ items }: { items: DashboardActivityItem[] }) {
         );
       })}
     </ol>
+    {pageCount > 1 && (
+      <nav aria-label="Halaman aktivitas" className="flex items-center justify-between border-t border-line-subtle px-5 py-2.5">
+        <span className="text-caption text-ink-subtle">
+          {current * ACTIVITY_PAGE_SIZE + 1}–{Math.min(items.length, (current + 1) * ACTIVITY_PAGE_SIZE)} dari {items.length}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setPage(current - 1)}
+            disabled={current === 0}
+            aria-label="Halaman sebelumnya"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-canvas-deep hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="min-w-[44px] text-center text-caption font-medium tabular-nums text-ink-muted">
+            {current + 1} / {pageCount}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage(current + 1)}
+            disabled={current >= pageCount - 1}
+            aria-label="Halaman berikutnya"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-canvas-deep hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </nav>
+    )}
+    </>
   );
 }
 

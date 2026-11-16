@@ -13,9 +13,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",
     "@aws-sdk/s3-request-presigner": "^3.716.0",
-    "@nexus/db": "workspace:*",
-    "@nexus/jobs": "workspace:*",
-    "@nexus/shared": "workspace:*",
+    "@nexus/db": "*",
+    "@nexus/jobs": "*",
+    "@nexus/shared": "*",
     "@node-rs/argon2": "^2.0.2",
     "@socket.io/redis-adapter": "^8.3.0",
     "bullmq": "^5.34.0",

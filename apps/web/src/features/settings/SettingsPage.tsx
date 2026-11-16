@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type DragEvent, type FormEvent, type React
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { AppWindow, Bell, BellRing, Building2, Camera, Download, Info, KeyRound, Lock, Mail, MonitorSmartphone, Power, RefreshCw, ShieldCheck, Trash2, Upload, User } from 'lucide-react';
+import { AppWindow, Bell, BellRing, Building2, Camera, Download, Info, KeyRound, Lock, Mail, Monitor, MonitorSmartphone, Moon, Palette, Power, RefreshCw, ShieldCheck, Sun, Trash2, Upload, User } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   EMAIL_DIGEST_LABEL,
@@ -15,18 +15,20 @@ import { platform } from '@nexus/platform';
 import { Avatar, Button, Field, Input, Spinner, Toggle } from '../../components/ui';
 import { errorMessage } from '../../lib/errors';
 import { useCurrentUser } from '../../stores/auth';
+import { useThemeStore, type ThemeMode } from '../../stores/theme';
 import { useDesktopUpdate } from '../desktop/useDesktopUpdate';
 import { useAvatarMutations, useChangePassword, useUpdateMe } from './hooks';
 import { SessionsSection } from './SessionsSection';
 import { SettingsCard } from './SettingsCard';
 
-type Section = 'profile' | 'security' | 'sessions' | 'notifications' | 'app';
+type Section = 'profile' | 'security' | 'sessions' | 'notifications' | 'appearance' | 'app';
 
 const SECTIONS: { value: Section; label: string; icon: ReactNode }[] = [
   { value: 'profile', label: 'Profil', icon: <User /> },
   { value: 'security', label: 'Keamanan', icon: <ShieldCheck /> },
   { value: 'sessions', label: 'Sesi Aktif', icon: <MonitorSmartphone /> },
   { value: 'notifications', label: 'Notifikasi', icon: <Bell /> },
+  { value: 'appearance', label: 'Tampilan', icon: <Palette /> },
   // Desktop only (PRD §4): version, signed auto-update, launch at login.
   ...(platform.kind === 'desktop' ? [{ value: 'app' as const, label: 'Aplikasi', icon: <AppWindow /> }] : []),
 ];
@@ -50,7 +52,7 @@ export function SettingsPage() {
     );
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas-deep/60">
+    <div className="flex min-h-full flex-col bg-paper">
       <header className="border-b border-line bg-surface px-8 pt-7">
         <h1 className="text-[1.5rem] font-semibold leading-tight tracking-[-0.02em] text-ink">Pengaturan akun</h1>
         <p className="mt-1.5 text-[0.875rem] text-ink-muted">Kelola profil, keamanan, dan preferensi notifikasi Anda.</p>
@@ -84,6 +86,7 @@ export function SettingsPage() {
           {section === 'security' && <SecuritySection />}
           {section === 'sessions' && <SessionsSection />}
           {section === 'notifications' && <NotificationsSection />}
+          {section === 'appearance' && <AppearanceSection />}
           {section === 'app' && <DesktopAppSection />}
         </div>
       </div>
@@ -158,7 +161,7 @@ function PhotoCard() {
           <Avatar user={shown} size="2xl" className="ring-4" />
           <span
             className={clsx(
-              'absolute inset-0 flex items-center justify-center rounded-full bg-ink/45 text-white transition-opacity',
+              'absolute inset-0 flex items-center justify-center rounded-full bg-ink/45 text-white dark:bg-black/55 transition-opacity',
               busy ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
             )}
           >
@@ -349,6 +352,48 @@ function SecuritySection() {
 
 // ─── Notifications ────────────────────────────────────────────────────
 
+// ─── Appearance ───────────────────────────────────────────────────────
+
+const THEME_OPTIONS: { value: ThemeMode; label: string; icon: ReactNode }[] = [
+  { value: 'light', label: 'Terang', icon: <Sun /> },
+  { value: 'dark', label: 'Gelap', icon: <Moon /> },
+  { value: 'system', label: 'Ikuti sistem', icon: <Monitor /> },
+];
+
+function AppearanceSection() {
+  const mode = useThemeStore((s) => s.mode);
+  const setMode = useThemeStore((s) => s.setMode);
+
+  return (
+    <SettingsCard title="Tema" description="Tersimpan di perangkat ini. “Ikuti sistem” mengikuti mode terang/gelap OS Anda.">
+      <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Tema">
+        {THEME_OPTIONS.map((opt) => {
+          const checked = mode === opt.value;
+          return (
+            <label
+              key={opt.value}
+              className={clsx(
+                'flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[0.875rem] font-medium transition-colors [&>svg]:h-4 [&>svg]:w-4',
+                checked ? 'border-brand bg-brand-soft text-ink ring-1 ring-brand' : 'border-line text-ink-muted hover:border-line-strong hover:text-ink',
+              )}
+            >
+              <input
+                type="radio"
+                name="theme"
+                className="h-4 w-4 accent-brand"
+                checked={checked}
+                onChange={() => setMode(opt.value)}
+              />
+              {opt.icon}
+              {opt.label}
+            </label>
+          );
+        })}
+      </div>
+    </SettingsCard>
+  );
+}
+
 function NotificationsSection() {
   const user = useCurrentUser();
   const update = useUpdateMe();
@@ -442,7 +487,7 @@ function DesktopAppSection() {
     try {
       await platform.autostart.setEnabled(enabled);
       await autostart.refetch();
-      toast.success(enabled ? 'NexusTask akan berjalan saat komputer dinyalakan.' : 'Mulai otomatis dimatikan.');
+      toast.success(enabled ? 'Mendunia Workbase akan berjalan saat komputer dinyalakan.' : 'Mulai otomatis dimatikan.');
     } catch {
       toast.error('Pengaturan mulai otomatis gagal disimpan.');
     } finally {
@@ -458,7 +503,7 @@ function DesktopAppSection() {
             <AppWindow className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[0.9375rem] font-bold text-ink">NexusTask Desktop {version.data ?? '…'}</p>
+            <p className="text-[0.9375rem] font-bold text-ink">Mendunia Workbase Desktop {version.data ?? '…'}</p>
             <p className="mt-0.5 text-[0.8125rem] text-ink-subtle">
               {status === 'checking'
                 ? 'Memeriksa pembaruan…'
@@ -503,7 +548,7 @@ function DesktopAppSection() {
           <div className="min-w-0 flex-1">
             <p className="text-[0.9375rem] font-bold text-ink">Jalankan saat komputer menyala</p>
             <p className="mt-0.5 text-[0.8125rem] text-ink-subtle">
-              NexusTask terbuka di system tray agar notifikasi tetap masuk. Menutup jendela tidak menghentikan aplikasi.
+              Mendunia Workbase terbuka di system tray agar notifikasi tetap masuk. Menutup jendela tidak menghentikan aplikasi.
             </p>
           </div>
           <Toggle

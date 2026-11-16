@@ -9,7 +9,7 @@ const SOLID = 'inline-flex h-[22px] max-w-[220px] shrink-0 items-center gap-1 ro
 /** Solid pill naming who the announcement is for, in the target's own color. */
 export function ScopeBadge({ announcement, className }: { announcement: Pick<AnnouncementSummary, 'scope' | 'division' | 'project'>; className?: string }) {
   const { scope, division, project } = announcement;
-  let color = '#0070F3';
+  let color = '#2652A0';
   let icon: ReactNode = <Globe2 aria-hidden />;
   let label = 'Perusahaan';
   if (scope === 'DIVISION' && division) {

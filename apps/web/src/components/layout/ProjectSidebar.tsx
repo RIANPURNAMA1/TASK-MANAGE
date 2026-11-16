@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { ChevronDown, CircleCheckBig, Plus, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, CircleCheck, Plus, Search } from 'lucide-react';
 import type { ProjectDTO } from '@nexus/shared';
 import { useChannelsQuery } from '../../features/chat/hooks';
 import { useProjectsQuery } from '../../features/projects/hooks';
@@ -115,8 +115,22 @@ export function ProjectSidebar() {
               )
             }
           >
-            <CircleCheckBig className="h-4 w-4 text-success" />
+            <CircleCheck className="h-4 w-4 text-success" />
             Tugas Saya
+          </NavLink>
+        )}
+        {!collapsed.shortcuts && (
+          <NavLink
+            to="/calendar"
+            className={({ isActive }) =>
+              clsx(
+                'flex items-center gap-3 rounded-xl px-3 py-2 text-[0.875rem] transition-colors',
+                isActive ? 'bg-canvas-deep font-bold text-ink' : 'font-medium text-ink-muted hover:bg-canvas hover:text-ink',
+              )
+            }
+          >
+            <CalendarDays className="h-4 w-4 text-brand" />
+            Kalender
           </NavLink>
         )}
 

@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useMatch } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
+import { id as localeId } from 'date-fns/locale';
 import { sortByPosition } from '@nexus/shared';
 import { useBoardQuery, useCreateCard } from '../../features/board/hooks';
+import { upsertCard } from '../../features/board/cache';
+import { api } from '../../lib/api';
 import { useCardModal } from '../../features/card/useCardModal';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { qk } from '../../lib/queryKeys';
 import { useProjectsQuery } from '../../features/projects/hooks';
 import { useUiStore } from '../../stores/ui';
 import { Button, Field, Input, Modal, Select } from '../ui';
@@ -29,6 +36,8 @@ function QuickTaskForm({ onDone }: { onDone: () => void }) {
   const lists = useMemo(() => sortByPosition(board.data?.lists ?? []), [board.data]);
   const createCard = useCreateCard(projectId);
   const { openInProject } = useCardModal();
+  const qc = useQueryClient();
+  const presetDate = useUiStore((s) => s.quickTaskDate);
 
   useEffect(() => {
     if (!projectId && editable[0]) setProjectId(editable[0].id);
@@ -43,9 +52,20 @@ function QuickTaskForm({ onDone }: { onDone: () => void }) {
     createCard.mutate(
       { listId, title: title.trim() },
       {
-        onSuccess: (card) => {
+        onSuccess: async (card) => {
+          let created = card;
+          if (presetDate) {
+            // Created from a calendar day: default to end of the working day (17:00 local).
+            try {
+              created = await api.cards.update(card.id, { dueDate: new Date(`${presetDate}T17:00:00`).toISOString() });
+              upsertCard(qc, created);
+              void qc.invalidateQueries({ queryKey: qk.calendar });
+            } catch {
+              toast.error('Task dibuat, tetapi tenggatnya gagal diatur.');
+            }
+          }
           onDone();
-          openInProject(card.projectId, card.id);
+          openInProject(created.projectId, created.id);
         },
       },
     );
@@ -53,6 +73,11 @@ function QuickTaskForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      {presetDate && (
+        <p className="rounded-lg bg-brand-subtle px-3 py-2 text-[0.8125rem] text-brand">
+          Tenggat: {format(parseISO(presetDate), 'EEEE, d MMMM yyyy', { locale: localeId })}
+        </p>
+      )}
       <Field label="Judul">
         {(id) => <Input id={id} autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Apa yang perlu dikerjakan?" />}
       </Field>

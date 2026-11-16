@@ -9,6 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nexus/shared": "workspace:*"
+    "@nexus/shared": "*"
   }
 }

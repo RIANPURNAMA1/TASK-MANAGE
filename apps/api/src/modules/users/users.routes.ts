@@ -1,7 +1,8 @@
-import { avatarUploadSchema, changePasswordSchema, completeAvatarSchema, searchQuerySchema, updateMeSchema } from '@nexus/shared';
+import { avatarUploadSchema, calendarQuerySchema, changePasswordSchema, completeAvatarSchema, searchQuerySchema, updateMeSchema } from '@nexus/shared';
 import { Router } from 'express';
 import { actorOf, param, parseBody, parseQuery } from '../../lib/http';
 import { avatarRedirect, completeAvatarUpload, presignAvatarUpload, removeAvatar } from './avatar.service';
+import { listCalendar } from '../board/calendar.service';
 import { listMyTasks } from '../board/my-tasks.service';
 import { changePassword, loadMe, searchUsers, updateMe } from './users.service';
 
@@ -34,6 +35,10 @@ usersRouter.delete('/me/avatar', async (req, res) => {
 
 usersRouter.get('/me/tasks', async (req, res) => {
   res.json(await listMyTasks(actorOf(req)));
+});
+
+usersRouter.get('/me/calendar', async (req, res) => {
+  res.json(await listCalendar(actorOf(req), parseQuery(calendarQuerySchema, req)));
 });
 
 usersRouter.get('/users', async (req, res) => {

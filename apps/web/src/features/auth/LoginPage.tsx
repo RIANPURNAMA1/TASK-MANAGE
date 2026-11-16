@@ -71,7 +71,7 @@ export function LoginPage() {
       aside={<AuthShowcase />}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} NexusTask</span>
+          <span>© {new Date().getFullYear()} Mendunia Workbase</span>
           <span>Belum punya akun? Minta undangan dari admin organisasi.</span>
         </div>
       }

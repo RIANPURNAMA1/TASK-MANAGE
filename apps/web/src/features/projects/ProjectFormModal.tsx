@@ -4,7 +4,7 @@ import { Button, Field, Input, Modal, Textarea, Toggle } from '../../components/
 import { errorMessage } from '../../lib/errors';
 import { useCreateProject } from './hooks';
 
-export const PALETTE = ['#0070F3', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#0EA5E9', '#475569'];
+export const PALETTE = ['#2652A0', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#0EA5E9', '#475569'];
 
 export function ColorSwatches({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   return (

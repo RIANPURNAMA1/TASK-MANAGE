@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nexus/db": "workspace:*",
-    "@nexus/jobs": "workspace:*",
-    "@nexus/shared": "workspace:*",
+    "@nexus/db": "*",
+    "@nexus/jobs": "*",
+    "@nexus/shared": "*",
     "@socket.io/redis-emitter": "^5.1.0",
     "bullmq": "^5.34.0",
     "dotenv": "^16.4.7",

@@ -14,7 +14,7 @@ export function AdminPage() {
     setParams(next === 'users' ? {} : { tab: next }, { replace: true });
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas-deep/60">
+    <div className="flex min-h-full flex-col bg-paper">
       <header className="border-b border-line bg-surface px-8 pt-7">
         <h1 className="flex items-center gap-3 text-[1.5rem] font-semibold leading-tight tracking-[-0.02em] text-ink">
           <ShieldCheck className="h-[22px] w-[22px] text-brand" aria-hidden />

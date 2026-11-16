@@ -69,10 +69,10 @@ export function createDesktopPlatform(): Platform {
 
   const platform: Platform = {
     kind: 'desktop',
-    clientHeaders: { 'x-desktop-device': `NexusTask Desktop di ${os}` },
+    clientHeaders: { 'x-desktop-device': `Mendunia Workbase Desktop di ${os}` },
 
     deviceName() {
-      return `NexusTask Desktop di ${os}`;
+      return `Mendunia Workbase Desktop di ${os}`;
     },
 
     async appVersion() {

@@ -1,4 +1,4 @@
-//! NexusTask desktop shell (Tauri v2, PRD §4). The UI is the bundled apps/web SPA; this
+//! Mendunia Workbase desktop shell (Tauri v2, PRD §4). The UI is the bundled apps/web SPA; this
 //! crate only adds OS integration: keychain, tray, single instance + deep links, native
 //! notifications, badge, signed auto-update and optional launch at login.
 
@@ -31,23 +31,23 @@ fn set_badge(app: AppHandle, count: u32) {
         let _ = window.set_badge_count(if count > 0 { Some(i64::from(count)) } else { None });
         #[cfg(target_os = "windows")]
         {
-            let title = if count > 0 { format!("({}) NexusTask", count.min(99)) } else { "NexusTask".to_string() };
+            let title = if count > 0 { format!("({}) Mendunia Workbase", count.min(99)) } else { "Mendunia Workbase".to_string() };
             let _ = window.set_title(&title);
         }
     }
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        let tooltip = if count > 0 { format!("NexusTask — {count} belum dibaca") } else { "NexusTask".to_string() };
+        let tooltip = if count > 0 { format!("Mendunia Workbase — {count} belum dibaca") } else { "Mendunia Workbase".to_string() };
         let _ = tray.set_tooltip(Some(tooltip));
     }
 }
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
-    let open = MenuItem::with_id(app, "open", "Buka NexusTask", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Buka Mendunia Workbase", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Keluar", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &PredefinedMenuItem::separator(app)?, &quit])?;
 
     let mut tray = TrayIconBuilder::with_id(TRAY_ID)
-        .tooltip("NexusTask")
+        .tooltip("Mendunia Workbase")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {
@@ -112,7 +112,7 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            // Closing the window keeps NexusTask running in the tray so notifications keep
+            // Closing the window keeps Mendunia Workbase running in the tray so notifications keep
             // arriving (PRD §4). "Keluar" in the tray menu quits for real.
             if let WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == MAIN_WINDOW {
@@ -122,7 +122,7 @@ pub fn run() {
             }
         })
         .build(tauri::generate_context!())
-        .expect("error while building NexusTask");
+        .expect("error while building Mendunia Workbase");
 
     app.run(|_app, _event| {
         // macOS: clicking the dock icon of a hidden app brings the window back.

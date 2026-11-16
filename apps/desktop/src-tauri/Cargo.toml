@@ -1,7 +1,7 @@
 [package]
 name = "nexustask-desktop"
 version = "0.1.0"
-description = "NexusTask desktop app"
+description = "Mendunia Workbase desktop app"
 edition = "2021"
 rust-version = "1.77.2"
 

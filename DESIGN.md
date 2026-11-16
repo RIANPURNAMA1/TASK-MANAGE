@@ -1,4 +1,4 @@
-DESIGN SYSTEM: NexusTask Enterprise Orchestration (malesin.AI Aesthetic)
+DESIGN SYSTEM: Mendunia Workbase Enterprise Orchestration (malesin.AI Aesthetic)
 
 1. Overview & Brand Personality
 
@@ -6,7 +6,7 @@ DESIGN SYSTEM: NexusTask Enterprise Orchestration (malesin.AI Aesthetic)
 
 
 
-Nama Sistem: NexusTask (Platform Task Management & Kolaborasi Multi-Divisi)
+Nama Sistem: Mendunia Workbase (Platform Task Management & Kolaborasi Multi-Divisi)
 
 
 
@@ -26,13 +26,13 @@ Inspirasi Gaya: Clean minimalis ala modern chat/inbox platform (malesin.AI), lin
 
 
 
-Primary / Brand Blue: #0070F3 (Hex: rgb(0, 112, 243))
+Primary / Brand Blue: #2652A0 (rgb(38, 82, 160))
 
 
 
 
 
-Hover / Darker: #0051C6 / #1D4ED8
+Hover / Darker: #1E4282 / #1B3C78
 
 
 
@@ -168,11 +168,11 @@ Text: #1E40AF
 
 
 
-Primary Font Family: Nunito, sans-serif
+Primary Font Family: Segoe UI, sans-serif
 
 
 
-Fallback Stack: Nunito, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+Fallback Stack: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif
 
 Type Scale & Hierarchy:
 
@@ -336,7 +336,7 @@ Top Navigation Bar (Height: 60px):
 
 
 
-Left: Brand Logo ("NexusTask"), Workspace Switcher dropdown.
+Left: Brand Logo ("Mendunia Workbase"), Workspace Switcher dropdown.
 
 
 
@@ -414,7 +414,7 @@ Chat & Discussion Box:
 
 
 
-Message bubble flat modern (User chat dengan light blue tint #0070F3, rekan chat dengan white card + soft border).
+Message bubble flat modern (User chat dengan light blue tint #2652A0, rekan chat dengan white card + soft border).
 
 
 

@@ -1,11 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { Eye, KanbanSquare, Lock, Plus, SlidersHorizontal, Table2, UserPlus } from 'lucide-react';
+import { CalendarDays, Eye, KanbanSquare, Lock, Plus, SlidersHorizontal, Table2, UserPlus } from 'lucide-react';
 import { sortByPosition, type BoardData, type CardSummary, type ProjectDTO } from '@nexus/shared';
 import { AvatarStack, Button, ErrorState, Skeleton } from '../../components/ui';
 import { ProjectGlyph } from '../../components/layout/ProjectSidebar';
 import { dueStatus } from '../../lib/format';
+import { ProjectCalendar } from '../calendar/ProjectCalendar';
 import { useCardModal } from '../card/useCardModal';
 import { useChannelsQuery, useOpenProjectChannel } from '../chat/hooks';
 import { useJoinProject } from '../projects/hooks';
@@ -16,7 +17,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { COLUMN_WIDTH } from './KanbanColumn';
 import { TableView } from './TableView';
 
-type View = 'board' | 'table';
+type View = 'board' | 'table' | 'calendar';
 
 export function BoardPage() {
   const { projectId = '' } = useParams();
@@ -37,7 +38,8 @@ export function BoardPage() {
 function Board({ data }: { data: BoardData }) {
   const { project } = data;
   const [params, setParams] = useSearchParams();
-  const view: View = params.get('view') === 'table' ? 'table' : 'board';
+  const rawView = params.get('view');
+  const view: View = rawView === 'table' || rawView === 'calendar' ? rawView : 'board';
   const [filters, setFilters] = useState<BoardFilters>(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { open } = useCardModal();
@@ -49,13 +51,13 @@ function Board({ data }: { data: BoardData }) {
   const setView = (next: View) =>
     setParams((prev) => {
       const p = new URLSearchParams(prev);
-      if (next === 'table') p.set('view', 'table');
-      else p.delete('view');
+      if (next === 'board') p.delete('view');
+      else p.set('view', next);
       return p;
     });
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas-deep/60">
+    <div className="flex min-h-full flex-col bg-paper">
       <ProjectHeader project={project} members={data.members} />
 
       <div className="sticky top-0 z-20 bg-canvas-deep/85 px-8 backdrop-blur">
@@ -65,6 +67,9 @@ function Board({ data }: { data: BoardData }) {
           </ViewTab>
           <ViewTab active={view === 'table'} onClick={() => setView('table')} icon={<Table2 />}>
             Tabel
+          </ViewTab>
+          <ViewTab active={view === 'calendar'} onClick={() => setView('calendar')} icon={<CalendarDays />}>
+            Kalender
           </ViewTab>
 
           <div className="ml-auto flex items-center gap-4">
@@ -110,10 +115,12 @@ function Board({ data }: { data: BoardData }) {
             canEdit={project.access.canEdit}
             onOpenCard={open}
           />
-        ) : (
+        ) : view === 'table' ? (
           <div className="px-8 pb-10">
             <TableView lists={lists} cards={cards} onOpenCard={open} />
           </div>
+        ) : (
+          <ProjectCalendar project={project} lists={lists} cards={cards} onOpenCard={open} />
         )}
       </div>
     </div>
@@ -273,7 +280,7 @@ function BoardSummary({ cards, total, filtering }: { cards: CardSummary[]; total
 
 function BoardSkeleton() {
   return (
-    <div className="min-h-full bg-canvas-deep/60">
+    <div className="min-h-full bg-paper">
       <div className="space-y-4 border-b border-line bg-surface px-8 pb-4 pt-7">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-40" />

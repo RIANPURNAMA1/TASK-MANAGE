@@ -3,24 +3,110 @@
 @tailwind utilities;
 
 @layer base {
+  /* Color tokens as RGB triplets (see tailwind.config.ts). Light mode. */
+  :root {
+    color-scheme: light;
+    --c-brand: 38 82 160; /* #2652A0 */
+    --c-brand-hover: 30 66 130;
+    --c-brand-strong: 27 60 120;
+    --c-brand-subtle: 238 242 249;
+    --c-brand-soft: 244 246 251;
+    --c-brand-border: 195 209 234;
+    --c-canvas: 248 250 252;
+    --c-canvas-deep: 241 245 249;
+    --c-surface: 255 255 255;
+    --c-ink: 15 23 42;
+    --c-ink-muted: 71 85 105;
+    --c-ink-subtle: 100 116 139;
+    --c-line: 226 232 240;
+    --c-line-subtle: 241 245 249;
+    --c-line-strong: 203 213 225;
+    --c-line-focus: 143 168 214;
+    --c-success: 16 185 129;
+    --c-success-soft: 236 253 245;
+    --c-success-ink: 6 95 70;
+    --c-warning: 245 158 11;
+    --c-warning-soft: 254 243 199;
+    --c-warning-ink: 146 64 14;
+    --c-danger: 239 68 68;
+    --c-danger-soft: 254 242 242;
+    --c-danger-ink: 153 27 27;
+    --c-info: 59 130 246;
+    --c-info-soft: 239 246 255;
+    --c-info-ink: 30 64 175;
+    /* Paper backdrop: overlay color fading the texture, and the color shown before it loads. */
+    --paper-overlay: 255 255 255;
+    --paper-base: #f5f5f5;
+    --scrollbar: #cbd5e1;
+    /* Dashboard trend chart series (validated pair). */
+    --chart-1: #2a78d6;
+    --chart-2: #eb6834;
+  }
+
+  /* Dark mode — toggled by the `dark` class on <html> (stores/theme.ts). */
+  .dark {
+    color-scheme: dark;
+    --c-brand: 74 123 208; /* lighter #2652A0 so it reads on dark surfaces */
+    --c-brand-hover: 96 143 222;
+    --c-brand-strong: 140 175 232;
+    --c-brand-subtle: 30 45 75;
+    --c-brand-soft: 26 36 58;
+    --c-brand-border: 52 78 125;
+    --c-canvas: 21 28 43;
+    --c-canvas-deep: 15 21 34;
+    --c-surface: 26 34 51;
+    --c-ink: 226 232 240;
+    --c-ink-muted: 163 174 194;
+    --c-ink-subtle: 133 146 168;
+    --c-line: 44 54 72;
+    --c-line-subtle: 35 44 61;
+    --c-line-strong: 59 71 92;
+    --c-line-focus: 96 143 222;
+    --c-success-soft: 16 52 44;
+    --c-success-ink: 110 231 183;
+    --c-warning-soft: 61 46 15;
+    --c-warning-ink: 252 211 77;
+    --c-danger-soft: 69 26 30;
+    --c-danger-ink: 252 165 165;
+    --c-info-soft: 23 37 66;
+    --c-info-ink: 147 197 253;
+    --paper-overlay: 15 21 34;
+    --paper-base: #0f1522;
+    --scrollbar: #3b475c;
+    --chart-1: #4a90e2;
+    --chart-2: #f07a45;
+  }
+
   html,
   body,
   #root {
     @apply h-full;
   }
   body {
-    @apply bg-canvas font-sans text-body text-ink antialiased;
+    @apply bg-paper font-sans text-body text-ink antialiased;
     font-optical-sizing: auto;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-line-focus ring-offset-1;
+    @apply outline-none ring-2 ring-line-focus ring-offset-1 ring-offset-surface;
   }
 }
 
 @layer components {
+  /* Paper-texture backdrop used behind every page. */
+  .bg-paper {
+    /* The white layer on top fades the texture; raise its alpha to make the image fainter. */
+    --paper-fade: 0.9;
+    background-color: var(--paper-base);
+    background-image:
+      linear-gradient(rgb(var(--paper-overlay) / var(--paper-fade)), rgb(var(--paper-overlay) / var(--paper-fade))),
+      url('./assets/paper-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
 
   /* Rich-text content rendered from the editor (descriptions). */
@@ -30,25 +116,90 @@
   .prose-nexus p {
     @apply my-1.5;
   }
-  .prose-nexus h1,
-  .prose-nexus h2,
+  /* Notion-like headings: pasted or typed headings keep their size and weight. */
+  .prose-nexus h1 {
+    @apply mb-1 mt-6 text-[1.875rem] font-bold leading-[1.25] tracking-[-0.02em];
+  }
+  .prose-nexus h2 {
+    @apply mb-1 mt-5 text-[1.5rem] font-bold leading-[1.3] tracking-[-0.015em];
+  }
   .prose-nexus h3 {
-    @apply mb-1 mt-3 text-h3;
+    @apply mb-1 mt-4 text-[1.25rem] font-bold leading-[1.35];
+  }
+  .prose-nexus > :first-child,
+  .prose-nexus .ProseMirror > :first-child {
+    margin-top: 0;
   }
   .prose-nexus ul {
-    @apply my-1.5 list-disc pl-5;
+    @apply my-1.5 list-disc pl-6;
   }
   .prose-nexus ol {
-    @apply my-1.5 list-decimal pl-5;
+    @apply my-1.5 list-decimal pl-6;
+  }
+  .prose-nexus li > p {
+    @apply my-0.5;
   }
   .prose-nexus a {
     @apply text-brand underline;
   }
   .prose-nexus code {
-    @apply rounded bg-canvas-deep px-1 font-mono text-caption;
+    @apply rounded bg-canvas-deep px-1 font-mono text-[0.85em] text-danger-ink;
   }
   .prose-nexus pre {
-    @apply my-2 overflow-x-auto rounded-lg bg-ink p-3 font-mono text-caption text-white;
+    @apply my-2 overflow-x-auto rounded-lg bg-canvas-deep p-4 font-mono text-caption text-ink;
+  }
+  .prose-nexus pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+  .prose-nexus hr {
+    @apply my-4 border-0 border-t border-line;
+  }
+  .prose-nexus mark {
+    @apply rounded-[3px] px-0.5;
+  }
+
+  /* Checklist (task list). */
+  .prose-nexus ul[data-type='taskList'] {
+    @apply list-none pl-0;
+  }
+  .prose-nexus ul[data-type='taskList'] li {
+    @apply flex items-start gap-2;
+  }
+  .prose-nexus ul[data-type='taskList'] li > label {
+    @apply mt-[0.2rem] flex shrink-0 select-none items-center;
+  }
+  .prose-nexus ul[data-type='taskList'] li > label input {
+    @apply h-4 w-4 cursor-pointer accent-brand;
+  }
+  .prose-nexus ul[data-type='taskList'] li > div {
+    @apply min-w-0 flex-1;
+  }
+  .prose-nexus ul[data-type='taskList'] li[data-checked='true'] > div {
+    @apply text-ink-subtle line-through;
+  }
+
+  /* Tables keep their grid and borders when pasted (Notion, Google Docs, Excel, web pages). */
+  .prose-nexus .tableWrapper {
+    @apply my-3 overflow-x-auto;
+  }
+  .prose-nexus table {
+    @apply w-full border-collapse text-[0.875rem];
+    table-layout: fixed;
+  }
+  .prose-nexus th,
+  .prose-nexus td {
+    @apply relative min-w-[96px] border border-line px-3 py-1.5 text-left align-top;
+  }
+  .prose-nexus th {
+    @apply bg-canvas-deep font-bold;
+  }
+  .prose-nexus td > p,
+  .prose-nexus th > p {
+    @apply my-0;
+  }
+  .prose-nexus .selectedCell::after {
+    content: '';
+    @apply pointer-events-none absolute inset-0 bg-brand/10;
   }
   .prose-nexus blockquote {
     @apply my-2 border-l-2 border-line pl-3 text-ink-muted;

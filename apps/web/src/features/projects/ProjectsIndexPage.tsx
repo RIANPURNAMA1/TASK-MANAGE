@@ -10,7 +10,7 @@ export function ProjectsIndexPage() {
   const projects = useProjectsQuery(scope === 'archived' ? { archived: true } : {});
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas-deep/60">
+    <div className="flex min-h-full flex-col bg-paper">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line bg-surface px-8 pb-6 pt-7">
         <div>
           <h1 className="flex items-center gap-3 text-[1.5rem] font-semibold leading-tight tracking-[-0.02em] text-ink">

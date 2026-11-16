@@ -16,15 +16,15 @@ const escape = (value: string) =>
 
 function layout(title: string, body: string, cta?: { label: string; url: string }): string {
   const button = cta
-    ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#0070F3;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${escape(cta.label)}</a></p>`
+    ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#2652A0;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${escape(cta.label)}</a></p>`
     : '';
   return `<!doctype html><html><body style="margin:0;background:#F8FAFC;font-family:Inter,Segoe UI,Arial,sans-serif;color:#0F172A">
   <div style="max-width:560px;margin:32px auto;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:32px">
-    <div style="font-weight:700;font-size:18px;color:#0070F3;margin-bottom:24px">NexusTask</div>
+    <div style="font-weight:700;font-size:18px;color:#2652A0;margin-bottom:24px">Mendunia Workbase</div>
     <h1 style="font-size:20px;margin:0 0 16px">${escape(title)}</h1>
     <div style="font-size:14px;line-height:1.6;color:#475569">${body}</div>
     ${button}
-    <p style="font-size:12px;color:#94A3B8;margin-top:32px">Email ini dikirim otomatis oleh NexusTask. Atur preferensi email di menu Pengaturan.</p>
+    <p style="font-size:12px;color:#94A3B8;margin-top:32px">Email ini dikirim otomatis oleh Mendunia Workbase. Atur preferensi email di menu Pengaturan.</p>
   </div></body></html>`;
 }
 
@@ -41,7 +41,7 @@ export function verifyEmail(name: string, url: string): Email {
 
 export function resetPassword(name: string, url: string): Email {
   return {
-    subject: 'Reset password NexusTask',
+    subject: 'Reset password Mendunia Workbase',
     html: layout(
       `Halo ${name},`,
       '<p>Kami menerima permintaan reset password. Link berlaku 1 jam. Abaikan email ini jika Anda tidak memintanya.</p>',
@@ -55,7 +55,7 @@ export function invitation(inviter: string, organization: string, role: OrgRole,
   const intro = `${escape(inviter)} mengundang Anda bergabung ke <strong>${escape(organization)}</strong> sebagai ${ORG_ROLE_LABEL[role]}.`;
   return {
     subject: `Undangan bergabung ke ${organization}`,
-    html: layout('Anda diundang ke NexusTask', `<p>${intro}</p>`, { label: 'Terima undangan', url }),
+    html: layout('Anda diundang ke Mendunia Workbase', `<p>${intro}</p>`, { label: 'Terima undangan', url }),
     text: `${inviter} mengundang Anda bergabung ke ${organization} sebagai ${ORG_ROLE_LABEL[role]}.\n\nTerima undangan: ${url}`,
   };
 }
@@ -108,12 +108,12 @@ export function singleNotification(n: NotificationLine): Email {
 
 export function dailyDigest(name: string, lines: NotificationLine[], appUrl: string): Email {
   const items = lines
-    .map((l) => `<li style="margin-bottom:8px"><a href="${escape(l.url)}" style="color:#0070F3">${escape(describeNotification(l))}</a><br><span style="font-size:12px;color:#94A3B8">${escape(l.projectName)}</span></li>`)
+    .map((l) => `<li style="margin-bottom:8px"><a href="${escape(l.url)}" style="color:#2652A0">${escape(describeNotification(l))}</a><br><span style="font-size:12px;color:#94A3B8">${escape(l.projectName)}</span></li>`)
     .join('');
   return {
     subject: `Ringkasan harian: ${lines.length} notifikasi belum dibaca`,
     html: layout(`Halo ${name}, ini ringkasan Anda`, `<ul style="padding-left:18px">${items}</ul>`, {
-      label: 'Buka NexusTask',
+      label: 'Buka Mendunia Workbase',
       url: appUrl,
     }),
     text: `Halo ${name},\n\n${lines.map((l) => `- ${describeNotification(l)} (${l.url})`).join('\n')}`,

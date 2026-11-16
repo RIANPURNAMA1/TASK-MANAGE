@@ -13,6 +13,7 @@ import type {
   AnnouncementTargets,
   AttachmentDTO,
   AvatarUploadInput,
+  CalendarQuery,
   AvatarUploadResponse,
   AuthResponse,
   BoardData,
@@ -79,7 +80,7 @@ import { HttpClient, type HttpClientOptions } from './http';
 export { ApiError, HttpClient, type HttpClientOptions, type RefreshTokenStore } from './http';
 
 /**
- * Typed SDK for the NexusTask REST API (v1). One method per endpoint, grouped by resource.
+ * Typed SDK for the Mendunia Workbase REST API (v1). One method per endpoint, grouped by resource.
  * UI code depends on this — never on raw URLs.
  */
 export function createApiClient(options: HttpClientOptions) {
@@ -155,6 +156,7 @@ export function createApiClient(options: HttpClientOptions) {
       update: (input: UpdateMeInput) => http.patch<Me>('/me', input),
       changePassword: (input: ChangePasswordInput) => http.post<void>('/me/password', input),
       tasks: () => http.get<MyTaskDTO[]>('/me/tasks'),
+      calendar: (query: CalendarQuery) => http.get<MyTaskDTO[]>('/me/calendar', { ...query }),
       presignAvatar: (input: AvatarUploadInput) => http.post<AvatarUploadResponse>('/me/avatar', input),
       completeAvatar: (file: string) => http.post<Me>('/me/avatar/complete', { file }),
       removeAvatar: () => http.delete<Me>('/me/avatar'),

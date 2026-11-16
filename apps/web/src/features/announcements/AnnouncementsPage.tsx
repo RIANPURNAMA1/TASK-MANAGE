@@ -50,7 +50,7 @@ export function AnnouncementsPage() {
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-canvas-deep/60">
+    <div className="flex h-full min-h-0 flex-col bg-paper">
       <header className="shrink-0 border-b border-line bg-surface px-8 pt-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -194,7 +194,7 @@ export function AnnouncementsPage() {
           ) : (
             <div className="flex h-full items-center justify-center p-8">
               <div className="max-w-sm text-center">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_10px_24px_-12px_rgba(0,112,243,0.7)]">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_10px_24px_-12px_rgba(38,82,160,0.7)]">
                   <Megaphone className="h-6 w-6" />
                 </span>
                 <p className="mt-4 text-[1rem] font-bold text-ink">Pilih pengumuman</p>
@@ -230,7 +230,7 @@ function ListItem({ announcement: a, active }: { announcement: AnnouncementSumma
         className={clsx(
           'relative block rounded-2xl border bg-surface p-4 transition-[border-color,box-shadow] duration-200',
           active
-            ? 'border-brand shadow-[0_0_0_1px_rgb(0,112,243)]'
+            ? 'border-brand shadow-[0_0_0_1px_rgb(38,82,160)]'
             : 'border-transparent shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-line hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)]',
         )}
       >

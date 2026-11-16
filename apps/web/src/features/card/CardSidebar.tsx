@@ -18,7 +18,7 @@ import { SolidLabel } from './CardSection';
 import { useCardMutations } from './hooks';
 import { PickerPopover } from './PickerPopover';
 
-const LABEL_COLORS = ['#0070F3', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#0EA5E9', '#64748B'];
+const LABEL_COLORS = ['#2652A0', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#0EA5E9', '#64748B'];
 
 const toggle = (ids: string[], id: string) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
 
@@ -119,8 +119,25 @@ export function CardSidebar({ card, board }: { card: CardDetail; board: BoardDat
           />
         </Property>
 
+        <Property icon={<CalendarDays />} label="Mulai">
+          <DateField
+            label="Tanggal mulai"
+            value={card.startDate}
+            max={card.dueDate}
+            canEdit={canEdit}
+            onChange={(startDate) => m.update.mutate({ startDate })}
+          />
+        </Property>
+
         <Property icon={<CalendarDays />} label="Tenggat">
-          <DueField card={card} canEdit={canEdit} onChange={(dueDate) => m.update.mutate({ dueDate })} />
+          <DateField
+            label="Tenggat"
+            value={card.dueDate}
+            min={card.startDate}
+            tone={dueColor[dueStatus(card.dueDate, card.completedAt)]}
+            canEdit={canEdit}
+            onChange={(dueDate) => m.update.mutate({ dueDate })}
+          />
         </Property>
 
         <Property icon={<Flag />} label="Prioritas">
@@ -220,37 +237,49 @@ const dueColor = {
 } as const;
 
 /** Native datetime picker for reliability, styled as a property value; with a clear button. */
-function DueField({
-  card,
+/** Date-time property (start / due). The browser enforces `min`/`max`; the server re-checks the order. */
+function DateField({
+  label,
+  value,
+  min,
+  max,
+  tone,
   canEdit,
   onChange,
 }: {
-  card: CardDetail;
+  label: string;
+  value: string | null;
+  /** Earliest / latest allowed value (the other end of the range), if set. */
+  min?: string | null;
+  max?: string | null;
+  /** Text color class; defaults to the muted style. */
+  tone?: string;
   canEdit: boolean;
-  onChange: (dueDate: string | null) => void;
+  onChange: (value: string | null) => void;
 }) {
-  const status = dueStatus(card.dueDate, card.completedAt);
   return (
     <div className={clsx(valueButton, 'group gap-1 pr-1 focus-within:bg-surface')}>
       <input
         type="datetime-local"
-        aria-label="Tenggat"
+        aria-label={label}
         disabled={!canEdit}
-        defaultValue={toDateTimeLocal(card.dueDate)}
-        key={card.dueDate ?? 'none'}
+        defaultValue={toDateTimeLocal(value)}
+        min={min ? toDateTimeLocal(min) : undefined}
+        max={max ? toDateTimeLocal(max) : undefined}
+        key={value ?? 'none'}
         onBlur={(e) => {
           const next = fromDateTimeLocal(e.target.value);
-          if (next !== card.dueDate) onChange(next);
+          if (next !== value) onChange(next);
         }}
         className={clsx(
           'min-w-0 flex-1 bg-transparent text-[0.8125rem] font-semibold outline-none [color-scheme:light]',
-          card.dueDate ? dueColor[status] : 'text-ink-subtle',
+          value ? (tone ?? 'text-ink') : 'text-ink-subtle',
         )}
       />
-      {canEdit && card.dueDate && (
+      {canEdit && value && (
         <button
           type="button"
-          aria-label="Hapus tenggat"
+          aria-label={`Hapus ${label.toLowerCase()}`}
           onClick={() => onChange(null)}
           className="rounded-md p-1 text-ink-subtle opacity-0 transition-opacity hover:bg-canvas-deep hover:text-ink group-hover:opacity-100"
         >

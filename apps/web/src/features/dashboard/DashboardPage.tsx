@@ -58,7 +58,7 @@ export function DashboardPage() {
   const meta = data ? SCOPE_META[data.scope] : null;
 
   return (
-    <div className="flex min-h-full flex-col bg-canvas-deep/60">
+    <div className="flex min-h-full flex-col bg-paper">
       <header className="border-b border-line bg-surface px-8 pb-6 pt-7">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
@@ -69,7 +69,7 @@ export function DashboardPage() {
             <p className="mt-2 flex flex-wrap items-center gap-2 text-[0.875rem] text-ink-muted">
               {meta && data ? (
                 <>
-                  <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-brand px-3 text-caption font-bold text-white shadow-[0_6px_14px_-8px_rgba(0,112,243,0.7)] [&>svg]:h-3.5 [&>svg]:w-3.5">
+                  <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-brand px-3 text-caption font-bold text-white shadow-[0_6px_14px_-8px_rgba(38,82,160,0.7)] [&>svg]:h-3.5 [&>svg]:w-3.5">
                     {meta.icon}
                     {meta.title}
                   </span>

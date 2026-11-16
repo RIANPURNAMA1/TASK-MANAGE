@@ -19,7 +19,7 @@ async function main() {
   }
 
   const passwordHash = await hash(PASSWORD, { memoryCost: 19_456, timeCost: 2, parallelism: 1 });
-  const org = await prisma.organization.create({ data: { name: 'Nexus Startup' } });
+  const org = await prisma.organization.create({ data: { name: 'Mendunia' } });
 
   const people: { key: string; name: string; email: string; role: OrgRole }[] = [
     { key: 'owner', name: 'Raka Pratama', email: 'owner@nexus.local', role: 'OWNER' },
@@ -51,7 +51,7 @@ async function main() {
       orgId: org.id,
       name: 'Engineering',
       description: 'Produk, infrastruktur, dan kualitas.',
-      color: '#0070F3',
+      color: '#2652A0',
       members: {
         create: [
           { userId: u('lead'), role: 'LEAD' },
@@ -74,7 +74,7 @@ async function main() {
   const project = await prisma.project.create({
     data: {
       divisionId: engineering.id,
-      name: 'NexusTask v1',
+      name: 'Mendunia Workbase v1',
       description: 'Rilis MVP platform task management.',
       createdById: u('lead'),
       members: {

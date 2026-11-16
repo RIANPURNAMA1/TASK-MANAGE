@@ -1,22 +1,26 @@
 {
   "name": "nexustask",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "npm@11.6.2",
   "engines": {
     "node": ">=20.11"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "pnpm db:deploy && turbo run dev --parallel",
+    "dev": "npm run db:deploy && turbo run dev --parallel",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:migrate": "pnpm --filter @nexus/db migrate:dev",
-    "db:deploy": "pnpm --filter @nexus/db migrate:deploy",
-    "db:seed": "pnpm --filter @nexus/db seed",
-    "db:studio": "pnpm --filter @nexus/db studio",
-    "desktop:dev": "pnpm --filter @nexus/desktop desktop:dev",
-    "desktop:build": "pnpm --filter @nexus/desktop desktop:build"
+    "db:migrate": "npm run migrate:dev -w @nexus/db",
+    "db:deploy": "npm run migrate:deploy -w @nexus/db",
+    "db:seed": "npm run seed -w @nexus/db",
+    "db:studio": "npm run studio -w @nexus/db",
+    "desktop:dev": "npm run desktop:dev -w @nexus/desktop",
+    "desktop:build": "npm run desktop:build -w @nexus/desktop"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

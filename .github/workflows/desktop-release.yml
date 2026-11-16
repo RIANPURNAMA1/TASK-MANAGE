@@ -25,11 +25,10 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
 
       - name: Linux system dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -44,7 +43,7 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri -> target
 
-      - run: pnpm install --frozen-lockfile
+      - run: npm ci
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -64,9 +63,10 @@ jobs:
         with:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}
-          releaseName: 'NexusTask Desktop ${{ github.ref_name }}'
+          releaseName: 'Mendunia Workbase Desktop ${{ github.ref_name }}'
           releaseBody: 'Unduh installer untuk sistem operasi Anda di bawah ini.'
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
-          args: ${{ matrix.args }}
+          # Release builds sign updater packages; local `npm run desktop:build` skips that step.
+          args: --config src-tauri/tauri.release.conf.json ${{ matrix.args }}

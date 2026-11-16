@@ -170,7 +170,7 @@ export function MessageList(props: MessageListProps) {
           <button
             type="button"
             onClick={scrollToBottom}
-            className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-ink px-3.5 text-caption font-bold text-white shadow-card-hover transition-colors hover:bg-ink-muted"
+            className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-ink px-3.5 text-caption font-bold text-white shadow-card-hover transition-colors hover:bg-ink-muted dark:bg-line-strong dark:text-ink dark:hover:bg-line"
           >
             <ArrowDown className="h-3.5 w-3.5" /> {unseen} pesan baru
           </button>

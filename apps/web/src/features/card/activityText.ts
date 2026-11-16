@@ -4,6 +4,7 @@ const FIELD_LABEL: Record<string, string> = {
   title: 'judul',
   description: 'deskripsi',
   priority: 'prioritas',
+  startDate: 'tanggal mulai',
   dueDate: 'tenggat',
   name: 'nama',
   color: 'warna',

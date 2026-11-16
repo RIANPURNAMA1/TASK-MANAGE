@@ -13,7 +13,7 @@ export function ChatPage() {
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-line bg-surface">
         <ChannelList activeId={channelId} />
       </aside>
-      <section className="flex min-w-0 flex-1 flex-col bg-canvas-deep/60">
+      <section className="flex min-w-0 flex-1 flex-col bg-paper">
         {channelId ? (
           // Keyed so drafts, scroll position and room membership reset per channel.
           <ChannelView key={channelId} channelId={channelId} />

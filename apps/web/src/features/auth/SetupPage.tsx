@@ -23,7 +23,7 @@ export function SetupPage() {
 
   return (
     <AuthLayout
-      title="Siapkan NexusTask"
+      title="Siapkan Mendunia Workbase"
       description="Buat organisasi dan akun Owner pertama. Langkah ini hanya dilakukan sekali."
     >
       <form className="space-y-4" onSubmit={form.onSubmit} noValidate>

@@ -152,7 +152,7 @@ export function ChannelIcon({ channel, size = 'md' }: { channel: ChannelDTO; siz
         'flex shrink-0 items-center justify-center rounded-lg font-bold text-white',
         size === 'lg' ? 'h-10 w-10 text-h3' : 'h-8 w-8 text-caption',
       )}
-      style={{ backgroundColor: channel.project?.color ?? '#0070F3' }}
+      style={{ backgroundColor: channel.project?.color ?? '#2652A0' }}
       aria-hidden
     >
       #

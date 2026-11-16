@@ -88,7 +88,7 @@ describe('public endpoints', () => {
 });
 
 describe('desktop client (PRD §4)', () => {
-  const desktop = { 'x-desktop-device': 'NexusTask Desktop di Windows' };
+  const desktop = { 'x-desktop-device': 'Mendunia Workbase Desktop di Windows' };
 
   it('allows the Tauri webview origins through CORS', async () => {
     for (const origin of ['tauri://localhost', 'http://tauri.localhost', 'https://tauri.localhost']) {

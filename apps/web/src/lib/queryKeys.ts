@@ -5,6 +5,8 @@
 export const qk = {
   meta: ['meta'] as const,
   myTasks: ['my-tasks'] as const,
+  calendar: ['calendar'] as const,
+  calendarRange: (range: { from: string; to: string; scope: string; projectId?: string }) => ['calendar', range] as const,
   dashboard: ['dashboard'] as const,
   announcements: ['announcements'] as const,
   announcementList: (filter: { scope?: string; q?: string; unread?: boolean }) => ['announcements', 'list', filter] as const,

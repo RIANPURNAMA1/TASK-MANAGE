@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nexus/db": "workspace:*",
-    "@nexus/shared": "workspace:*",
+    "@nexus/db": "*",
+    "@nexus/shared": "*",
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {

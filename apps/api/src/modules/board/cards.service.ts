@@ -70,13 +70,18 @@ export async function updateCard(actor: Actor, cardId: string, input: UpdateCard
   return transactional(async (tx, afterCommit) => {
     const before = await tx.card.findUniqueOrThrow({ where: { id: cardId } });
 
-    const changes: Pick<Prisma.CardUncheckedUpdateInput, 'title' | 'priority' | 'dueDate' | 'completedAt'> & {
+    const changes: Pick<Prisma.CardUncheckedUpdateInput, 'title' | 'priority' | 'startDate' | 'dueDate' | 'completedAt'> & {
       description?: string | null;
     } = {};
     if (input.title !== undefined) changes.title = input.title;
     if (input.priority !== undefined) changes.priority = input.priority;
     if (input.description !== undefined) changes.description = sanitizeRichText(input.description);
+    if (input.startDate !== undefined) changes.startDate = input.startDate ? new Date(input.startDate) : null;
     if (input.dueDate !== undefined) changes.dueDate = input.dueDate ? new Date(input.dueDate) : null;
+    // A range must run forwards: the start can't be after the due date.
+    const start = changes.startDate !== undefined ? changes.startDate : before.startDate;
+    const due = changes.dueDate !== undefined ? changes.dueDate : before.dueDate;
+    if (start && due && start > due) throw badRequest('Tanggal mulai tidak boleh setelah tenggat.');
     if (input.completed !== undefined && input.completed !== (before.completedAt !== null)) {
       changes.completedAt = input.completed ? new Date() : null;
     }

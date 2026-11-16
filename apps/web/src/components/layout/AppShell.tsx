@@ -27,7 +27,7 @@ export function AppShell() {
     <div className="flex h-full overflow-hidden">
       <AppRail />
       {showProjects && <ProjectSidebar />}
-      <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-canvas">
+      <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-paper">
         <Outlet />
       </main>
       <CardModal />

@@ -15,12 +15,12 @@ export function UpdateRequired({ current, minimum }: { current: string; minimum:
   }, [check]);
 
   return (
-    <div className="flex h-full items-center justify-center bg-canvas-deep/60 p-6">
+    <div className="flex h-full items-center justify-center bg-paper p-6">
       <div className="w-full max-w-md rounded-2xl bg-surface p-8 text-center shadow-card ring-1 ring-inset ring-line-subtle">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_10px_24px_-12px_rgba(0,112,243,0.7)]">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_10px_24px_-12px_rgba(38,82,160,0.7)]">
           <Download className="h-6 w-6" />
         </span>
-        <h1 className="mt-4 text-[1.25rem] font-semibold text-ink">Perbarui NexusTask</h1>
+        <h1 className="mt-4 text-[1.25rem] font-semibold text-ink">Perbarui Mendunia Workbase</h1>
         <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-muted">
           Versi aplikasi Anda ({current}) sudah tidak didukung. Versi minimum yang diperlukan adalah {minimum}.
         </p>

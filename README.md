@@ -1,4 +1,4 @@
-# NexusTask
+# Mendunia Workbase
 
 Platform task management & kolaborasi multi-divisi (lihat [PRD.md](PRD.md) dan [DESIGN.md](DESIGN.md)).
 Repo ini berisi implementasi **fase MVP**: auth, struktur organisasi, board kanban real-time,
@@ -6,7 +6,7 @@ notifikasi, file, activity log, dan halaman admin.
 
 ## Arsitektur
 
-Modular monolith dalam monorepo pnpm + Turborepo:
+Modular monolith dalam monorepo npm workspaces + Turborepo:
 
 ```
 apps/
@@ -37,17 +37,17 @@ Prinsip penting:
 
 ## Menjalankan secara lokal (tanpa Docker)
 
-Prasyarat: **Node ≥ 20**, **pnpm 9** (`npm i -g pnpm@9`), dan **MySQL 8 / MariaDB 10.4+** yang
+Prasyarat: **Node ≥ 20**, **npm 10+** (bawaan Node), dan **MySQL 8 / MariaDB 10.4+** yang
 sedang berjalan — misalnya MySQL bawaan XAMPP atau Laragon. Tidak perlu Docker, Redis, atau SMTP.
 
 `.env.example` memakai `mysql://root:@localhost:3306/nexustask` (default XAMPP: user `root` tanpa
 password). Database `nexustask` dibuat otomatis oleh migrasi; ubah `DATABASE_URL` jika kredensial berbeda.
 
 ```bash
-pnpm install
+npm install
 cp .env.example .env    # default-nya sudah siap pakai untuk lokal
-pnpm dev                # terapkan migrasi, lalu API :4000 + web :5173
-pnpm db:seed            # (opsional, di terminal lain) data demo — password semua akun: password123
+npm run dev                # terapkan migrasi, lalu API :4000 + web :5173
+npm run db:seed            # (opsional, di terminal lain) data demo — password semua akun: password123
 ```
 
 Buka http://localhost:5173. Tanpa seed, aplikasi menampilkan halaman **setup awal** untuk membuat
@@ -71,14 +71,14 @@ Google hanya bisa dipakai oleh user yang sudah punya akun (lewat undangan).
 
 | Perintah | Fungsi |
 | --- | --- |
-| `pnpm dev` | Jalankan semua app dalam mode watch |
-| `pnpm typecheck` | Typecheck seluruh workspace |
-| `pnpm test` | Unit & HTTP test (shared, api) |
-| `pnpm build` | Build produksi (tsup untuk api/worker, Vite untuk web) |
-| `pnpm db:migrate` / `db:deploy` | Buat migrasi baru (dev) / terapkan migrasi (produksi) |
-| `pnpm db:studio` | Prisma Studio |
-| `pnpm desktop:dev` | Desktop app (Tauri) dengan hot reload — jalankan `pnpm dev` dulu |
-| `pnpm desktop:build` | Installer desktop untuk OS saat ini (`apps/desktop/src-tauri/target/release/bundle`) |
+| `npm run dev` | Jalankan semua app dalam mode watch |
+| `npm run typecheck` | Typecheck seluruh workspace |
+| `npm run test` | Unit & HTTP test (shared, api) |
+| `npm run build` | Build produksi (tsup untuk api/worker, Vite untuk web) |
+| `npm run db:migrate` / `npm run db:deploy` | Buat migrasi baru (dev) / terapkan migrasi (produksi) |
+| `npm run db:studio` | Prisma Studio |
+| `npm run desktop:dev` | Desktop app (Tauri) dengan hot reload — jalankan `npm run dev` dulu |
+| `npm run desktop:build` | Installer desktop untuk OS saat ini (`apps/desktop/src-tauri/target/release/bundle`) |
 
 ## Desktop app (Tauri v2)
 
@@ -96,18 +96,18 @@ integrasi OS lewat `@nexus/platform` (`desktop.ts`), komponen UI tidak memanggil
 | Auto-start | Opsional di Pengaturan → Aplikasi (berjalan di tray saat login OS) |
 | Keamanan | CSP ketat (`script-src 'self'`, font di-bundle, tanpa URL remote di webview), capability minimal |
 
-**Pengembangan:** `pnpm dev` lalu `pnpm desktop:dev`. Mode dev memuat `http://localhost:5173`.
+**Pengembangan:** `npm run dev` lalu `npm run desktop:dev`. Mode dev memuat `http://localhost:5173`.
 Prasyarat: Rust stable; di Windows Visual Studio Build Tools (C++) dan WebView2;
 di Linux `libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev`.
 
-**Build lokal:** `pnpm desktop:build`. SPA di-build dengan `--mode desktop` sehingga memakai URL
+**Build lokal:** `npm run desktop:build`. SPA di-build dengan `--mode desktop` sehingga memakai URL
 API absolut (`VITE_API_URL`, default `http://localhost:4000/api/v1`). Karena `createUpdaterArtifacts`
 aktif, set dulu kunci updater:
 
 ```bash
 export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/nexustask-updater.key)"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
-VITE_API_URL=https://api.contoh.com/api/v1 pnpm desktop:build
+VITE_API_URL=https://api.contoh.com/api/v1 npm run desktop:build
 ```
 
 **Rilis:** push tag `desktop-vX.Y.Z` → workflow `desktop-release.yml` membangun Windows, macOS

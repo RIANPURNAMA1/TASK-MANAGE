@@ -53,5 +53,6 @@ export function setLabels(qc: QueryClient, projectId: string, labels: LabelDTO[]
 /** After any card change: refresh dependent views that aren't patched directly. */
 export function invalidateCardViews(qc: QueryClient, cardId?: string): void {
   void qc.invalidateQueries({ queryKey: qk.myTasks });
+  void qc.invalidateQueries({ queryKey: qk.calendar });
   if (cardId) void qc.invalidateQueries({ queryKey: qk.card(cardId) });
 }

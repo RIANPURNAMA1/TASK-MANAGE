@@ -1,4 +1,4 @@
-// NexusTask — MVP data model (MySQL 8 / MariaDB 10.4+).
+// Mendunia Workbase — MVP data model (MySQL 8 / MariaDB 10.4+).
 // Hierarchy: Organization → Division → Project → BoardList → Card.
 // Conventions: cuid IDs, createdAt/updatedAt everywhere, soft delete via archivedAt/deletedAt.
 // Ordering columns (`position`) hold fractional-index keys and MUST be compared byte-wise
@@ -308,6 +308,8 @@ model Card {
   /// Sanitized HTML produced by the rich-text editor.
   description       String?   @db.Text
   priority          Priority  @default(NONE)
+  /// Optional start of the work; with `dueDate` it makes a range on the calendar timeline.
+  startDate         DateTime?
   dueDate           DateTime?
   position          String    @db.VarChar(191)
   completedAt       DateTime?

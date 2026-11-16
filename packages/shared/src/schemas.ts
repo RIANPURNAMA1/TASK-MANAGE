@@ -140,11 +140,29 @@ export const updateCardSchema = z
     title,
     description: z.string().max(50_000).nullable(),
     priority: z.enum(PRIORITIES),
+    startDate: z.string().datetime({ offset: true }).nullable(),
     dueDate: z.string().datetime({ offset: true }).nullable(),
     completed: z.boolean(),
   })
   .partial();
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
+
+/** Calendar window (FR calendar view). Capped so one request can't pull the whole history. */
+export const CALENDAR_MAX_DAYS = 100;
+export const calendarQuerySchema = z
+  .object({
+    from: z.string().datetime({ offset: true }),
+    to: z.string().datetime({ offset: true }),
+    /** `mine` = assigned to me, `all` = every card in projects I can see. */
+    scope: z.enum(['mine', 'all']).default('mine'),
+    projectId: idSchema.optional(),
+  })
+  .refine((q) => new Date(q.to) > new Date(q.from), { message: 'Rentang tanggal tidak valid.', path: ['to'] })
+  .refine((q) => new Date(q.to).getTime() - new Date(q.from).getTime() <= CALENDAR_MAX_DAYS * 24 * 3600 * 1000, {
+    message: `Rentang maksimal ${CALENDAR_MAX_DAYS} hari.`,
+    path: ['to'],
+  });
+export type CalendarQuery = z.input<typeof calendarQuerySchema>;
 
 export const moveCardSchema = z.object({ listId: idSchema, ...neighbours });
 export type MoveCardInput = z.infer<typeof moveCardSchema>;

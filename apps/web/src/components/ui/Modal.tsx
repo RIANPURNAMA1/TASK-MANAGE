@@ -86,7 +86,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 pt-[6vh] backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 p-4 dark:bg-black/60 pt-[6vh] backdrop-blur-[2px]">
       <div className="fixed inset-0" aria-hidden onClick={onClose} />
       <div
         ref={panelRef}

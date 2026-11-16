@@ -1,16 +1,18 @@
 import type { ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  CircleCheckBig,
-  FolderKanban,
-  LayoutDashboard,
+  CalendarDays,
+  CircleCheck,
+  Folder,
   LayoutGrid,
   LogOut,
   Megaphone,
   MessageCircle,
+  Moon,
   Settings,
   ShieldCheck,
   SquarePen,
+  Sun,
   UsersRound,
 } from 'lucide-react';
 import { ORG_ROLE_LABEL, isOrgAdmin } from '@nexus/shared';
@@ -18,10 +20,12 @@ import { useAnnouncementUnread } from '../../features/announcements/hooks';
 import { useLogout } from '../../features/auth/hooks';
 import { useChatUnreadTotal } from '../../features/chat/hooks';
 import { useCurrentUser } from '../../stores/auth';
+import { useThemeStore } from '../../stores/theme';
 import { useUiStore } from '../../stores/ui';
 import { Avatar, Menu, MenuItem, MenuSeparator, Tooltip } from '../ui';
 import { NotificationBell } from './NotificationBell';
 import { railItemClass } from './railItem';
+import logoMark from '../../assets/logo-mark.png';
 
 interface RailEntry {
   label: string;
@@ -67,13 +71,14 @@ export function AppRail() {
   const announcementUnread = useAnnouncementUnread();
   const openQuickTask = useUiStore((s) => s.setQuickTaskOpen);
 
+  // Order and glyphs follow the reference rail: grid · chat · folder · check · bell · people · gear.
   const entries: RailEntry[] = [
-    { label: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard /> },
-    { label: 'Divisi & Proyek', to: '/divisions', icon: <LayoutGrid /> },
+    { label: 'Dashboard', to: '/dashboard', icon: <LayoutGrid /> },
     { label: 'Chat Tim', to: '/chat', icon: <MessageCircle />, badge: chatUnread },
     { label: 'Pengumuman', to: '/announcements', icon: <Megaphone />, badge: announcementUnread },
-    { label: 'Board Proyek', to: '/projects', icon: <FolderKanban />, match: ['/projects'] },
-    { label: 'Tugas Saya', to: '/my-tasks', icon: <CircleCheckBig /> },
+    { label: 'Board Proyek', to: '/projects', icon: <Folder />, match: ['/projects'] },
+    { label: 'Tugas Saya', to: '/my-tasks', icon: <CircleCheck /> },
+    { label: 'Kalender', to: '/calendar', icon: <CalendarDays /> },
   ];
 
   return (
@@ -85,27 +90,29 @@ export function AppRail() {
         to="/dashboard"
         aria-label={`${user.organization.name} — beranda`}
         title={user.organization.name}
-        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-canvas-deep text-[22px] font-black text-ink shadow-[inset_0_0_0_1px_rgba(15,23,42,0.06)] transition-transform hover:scale-105"
+        className="mb-4 flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105"
       >
-        {user.organization.name.trim().charAt(0).toUpperCase()}
+        <img src={logoMark} alt="" className="h-12 w-12 select-none" draggable={false} />
       </NavLink>
 
       {entries.map((entry) => (
         <RailLink key={entry.to} entry={entry} />
       ))}
       <NotificationBell />
+      <RailLink entry={{ label: 'Divisi & Proyek', to: '/divisions', icon: <UsersRound /> }} />
       {isOrgAdmin(user.orgRole) && (
-        <RailLink entry={{ label: 'Admin organisasi', to: '/admin', icon: <UsersRound /> }} />
+        <RailLink entry={{ label: 'Admin organisasi', to: '/admin', icon: <ShieldCheck /> }} />
       )}
       <RailLink entry={{ label: 'Pengaturan', to: '/settings', icon: <Settings /> }} />
 
       <div className="mt-auto flex flex-col items-center gap-3">
+        <ThemeToggle />
         <Tooltip content="Buat tugas baru (Ctrl+K untuk mencari)" side="right">
           <button
             type="button"
             onClick={() => openQuickTask(true)}
             aria-label="Buat tugas baru"
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white shadow-[0_6px_16px_-6px_rgba(0,112,243,0.6)] transition-colors hover:bg-brand-hover [&_svg]:h-5 [&_svg]:w-5"
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white shadow-[0_6px_16px_-6px_rgba(38,82,160,0.6)] transition-colors hover:bg-brand-hover [&_svg]:h-5 [&_svg]:w-5"
           >
             <SquarePen />
           </button>
@@ -113,6 +120,21 @@ export function AppRail() {
         <ProfileMenu />
       </div>
     </nav>
+  );
+}
+
+/** One-click light/dark switch. "Ikuti sistem" lives in Pengaturan → Tampilan. */
+function ThemeToggle() {
+  const resolved = useThemeStore((s) => s.resolved);
+  const setMode = useThemeStore((s) => s.setMode);
+  const dark = resolved === 'dark';
+  const label = dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap';
+  return (
+    <Tooltip content={label} side="right">
+      <button type="button" onClick={() => setMode(dark ? 'light' : 'dark')} aria-label={label} className={railItemClass(false)}>
+        {dark ? <Sun /> : <Moon />}
+      </button>
+    </Tooltip>
   );
 }
 

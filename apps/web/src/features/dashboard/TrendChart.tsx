@@ -9,8 +9,9 @@ import type { DashboardTrendPoint } from '@nexus/shared';
  * Fixed order: "Selesai" is always slot 1, "Dibuat" slot 2.
  */
 const SERIES = [
-  { key: 'completed', label: 'Selesai', color: '#2a78d6' },
-  { key: 'created', label: 'Dibuat', color: '#eb6834' },
+  // CSS variables (index.css) so each series has a light and a dark-mode shade.
+  { key: 'completed', label: 'Selesai', color: 'var(--chart-1)' },
+  { key: 'created', label: 'Dibuat', color: 'var(--chart-2)' },
 ] as const;
 
 const HEIGHT = 232;

@@ -13,7 +13,7 @@ export function AuthLayout({
   footer?: ReactNode;
 }) {
   return (
-    <main className="flex min-h-full items-center justify-center bg-canvas px-4 py-12">
+    <main className="flex min-h-full items-center justify-center bg-paper px-4 py-12">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 flex justify-center">
           <Logo />
@@ -47,7 +47,7 @@ export function AuthSplitLayout({
   aside: ReactNode;
 }) {
   return (
-    <main className="flex min-h-full bg-surface lg:p-3">
+    <main className="flex min-h-full bg-paper lg:p-3">
       <section className="flex w-full flex-col px-6 py-8 sm:px-10 lg:w-[46%] lg:max-w-[560px] lg:px-14">
         <Logo />
         <div className="flex flex-1 items-center py-10">

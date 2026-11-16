@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
-    "@nexus/shared": "workspace:*"
+    "@nexus/shared": "*"
   },
   "devDependencies": {
     "@node-rs/argon2": "^2.0.2",

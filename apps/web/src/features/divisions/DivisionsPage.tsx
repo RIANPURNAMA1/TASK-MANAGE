@@ -69,7 +69,7 @@ export function DivisionsPage() {
 
   return (
     <SubNavLayout nav={nav}>
-      <div className="flex min-h-full flex-col bg-canvas-deep/60">
+      <div className="flex min-h-full flex-col bg-paper">
         {selected ? (
           <DivisionDetail key={selected.id} division={selected} />
         ) : (

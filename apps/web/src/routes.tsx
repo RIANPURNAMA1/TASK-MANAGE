@@ -14,6 +14,7 @@ import { ForgotPasswordPage, ResetPasswordPage } from './features/auth/PasswordP
 import { SetupPage } from './features/auth/SetupPage';
 import { VerifyEmailPage } from './features/auth/VerifyEmailPage';
 import { BoardPage } from './features/board/BoardPage';
+import { CalendarPage } from './features/calendar/CalendarPage';
 import { ChatPage } from './features/chat/ChatPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { compareVersions } from './features/desktop/useDesktopUpdate';
@@ -118,6 +119,7 @@ export const router = createBrowserRouter([
               { path: '/announcements', element: <AnnouncementsPage /> },
               { path: '/announcements/:announcementId', element: <AnnouncementsPage /> },
               { path: '/my-tasks', element: <MyTasksPage /> },
+              { path: '/calendar', element: <CalendarPage /> },
               { path: '/divisions', element: <DivisionsPage /> },
               { path: '/divisions/:divisionId', element: <DivisionsPage /> },
               { path: '/projects', element: <ProjectsIndexPage /> },

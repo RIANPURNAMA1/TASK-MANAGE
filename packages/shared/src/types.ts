@@ -144,6 +144,8 @@ export interface CardSummary {
   listId: string;
   title: string;
   priority: Priority;
+  /** Optional start; with `dueDate` the card spans a range on the calendar. */
+  startDate: ISODate | null;
   dueDate: ISODate | null;
   position: string;
   completedAt: ISODate | null;
@@ -324,7 +326,7 @@ export interface NotificationDTO {
     announcementId?: string;
     announcementTitle?: string;
     announcementKind?: 'posted' | 'comment';
-    /** e.g. "Perusahaan", "Divisi Engineering", "Proyek NexusTask v1". */
+    /** e.g. "Perusahaan", "Divisi Engineering", "Proyek Mendunia Workbase v1". */
     scopeLabel?: string;
   };
   readAt: ISODate | null;

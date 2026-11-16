@@ -51,7 +51,7 @@ const schema = z
     SMTP_PORT: z.coerce.number().int().default(587),
     SMTP_USER: z.string().default(''),
     SMTP_PASSWORD: z.string().default(''),
-    MAIL_FROM: z.string().default('NexusTask <no-reply@nexustask.local>'),
+    MAIL_FROM: z.string().default('Mendunia Workbase <no-reply@nexustask.local>'),
     TZ_DEFAULT: z.string().default('Asia/Jakarta'),
     DAILY_DIGEST_HOUR: z.coerce.number().int().min(0).max(23).default(8),
   })
