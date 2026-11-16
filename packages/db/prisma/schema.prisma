@@ -1,0 +1,693 @@
+// NexusTask — MVP data model (MySQL 8 / MariaDB 10.4+).
+// Hierarchy: Organization → Division → Project → BoardList → Card.
+// Conventions: cuid IDs, createdAt/updatedAt everywhere, soft delete via archivedAt/deletedAt.
+// Ordering columns (`position`) hold fractional-index keys and MUST be compared byte-wise
+// (see @nexus/shared `comparePosition`); they use a binary collation (see migration) and
+// the application sorts them in code.
+// MySQL maps `String` to VARCHAR(191): longer values get an explicit @db type.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+
+enum EmailDigestMode {
+  INSTANT
+  DAILY
+  OFF
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique @db.VarChar(255)
+  name            String
+  passwordHash    String?
+  googleId        String?         @unique
+  avatarUrl       String?         @db.Text
+  emailVerifiedAt DateTime?
+  deactivatedAt   DateTime?
+  emailDigest     EmailDigestMode @default(INSTANT)
+  lastDigestAt    DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  sessions           Session[]
+  tokens             UserToken[]
+  orgMemberships     OrgMember[]
+  divisionMembers    DivisionMember[]
+  projectMembers     ProjectMember[]
+  projectMutes       ProjectMute[]
+  assignments        CardAssignee[]
+  comments           Comment[]
+  mentions           Mention[]
+  attachments        Attachment[]
+  notifications      Notification[]    @relation("NotificationRecipient")
+  actedNotifications Notification[]    @relation("NotificationActor")
+  activities         ActivityLog[]
+  auditLogs          AuditLog[]
+  createdCards       Card[]            @relation("CardCreator")
+  createdProjects    Project[]         @relation("ProjectCreator")
+  sentInvitations    Invitation[]
+  channelMembers     ChannelMember[]
+  messages           Message[]
+  messageReactions   MessageReaction[]
+  messageMentions    MessageMention[]
+  announcements        Announcement[]        @relation("AnnouncementAuthor")
+  pinnedAnnouncements  Announcement[]        @relation("AnnouncementPinner")
+  announcementComments AnnouncementComment[]
+  announcementReads    AnnouncementRead[]
+}
+
+enum DeviceType {
+  WEB
+  DESKTOP
+}
+
+/// One row per logged-in device. The refresh token rotates on every use; only hashes are
+/// stored. Presenting a stale token revokes the session (reuse detection), except for the
+/// immediately previous token within a short grace window — two tabs sharing one cookie
+/// can legitimately race to refresh.
+model Session {
+  id                String     @id @default(cuid())
+  userId            String
+  refreshTokenHash  String
+  previousTokenHash String?
+  rotatedAt         DateTime?
+  deviceType        DeviceType @default(WEB)
+  deviceName        String
+  ipAddress         String?
+  lastUsedAt        DateTime   @default(now())
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum UserTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  /// One-time code handed to the desktop app via taskapp://auth/callback (Google SSO).
+  DESKTOP_LOGIN
+}
+
+model UserToken {
+  id        String        @id @default(cuid())
+  userId    String
+  type      UserTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+/// `email = null` means a shareable link invitation usable by anyone until it expires.
+model Invitation {
+  id          String    @id @default(cuid())
+  orgId       String
+  email       String?   @db.VarChar(255)
+  tokenHash   String    @unique
+  role        OrgRole   @default(MEMBER)
+  divisionId  String?
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  division     Division?    @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  invitedBy    User         @relation(fields: [invitedById], references: [id])
+
+  @@index([orgId])
+}
+
+// ─────────────────────────── Organization ───────────────────────────
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  DIVISION_LEAD
+  MEMBER
+  GUEST
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     OrgMember[]
+  divisions     Division[]
+  invitations   Invitation[]
+  auditLogs     AuditLog[]
+  announcements Announcement[]
+}
+
+model OrgMember {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String
+  role      OrgRole  @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+enum DivisionRole {
+  LEAD
+  MEMBER
+}
+
+model Division {
+  id          String    @id @default(cuid())
+  orgId       String
+  name        String
+  description String?   @db.Text
+  color       String    @default("#0070F3")
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  organization Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members       DivisionMember[]
+  projects      Project[]
+  invitations   Invitation[]
+  announcements Announcement[]
+
+  @@index([orgId])
+}
+
+model DivisionMember {
+  id         String       @id @default(cuid())
+  divisionId String
+  userId     String
+  role       DivisionRole @default(MEMBER)
+  createdAt  DateTime     @default(now())
+
+  division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([divisionId, userId])
+  @@index([userId])
+}
+
+// ───────────────────────────── Project ──────────────────────────────
+
+enum ProjectRole {
+  ADMIN
+  MEMBER
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  divisionId  String
+  name        String
+  description String?   @db.Text
+  color       String    @default("#0070F3")
+  isPrivate   Boolean   @default(false)
+  createdById String
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  division      Division        @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  createdBy     User            @relation("ProjectCreator", fields: [createdById], references: [id])
+  members       ProjectMember[]
+  mutes         ProjectMute[]
+  lists         BoardList[]
+  cards         Card[]
+  labels        Label[]
+  attachments   Attachment[]
+  activities    ActivityLog[]
+  notifications Notification[]
+  channel       Channel?
+  announcements Announcement[]
+
+  @@index([divisionId])
+  @@index([createdById])
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+/// Per-user, per-project notification mute (FR-23).
+model ProjectMute {
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@index([userId])
+}
+
+// ────────────────────────────── Board ───────────────────────────────
+
+model BoardList {
+  id         String    @id @default(cuid())
+  projectId  String
+  name       String
+  position   String    @db.VarChar(191)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cards   Card[]
+
+  @@index([projectId, position])
+}
+
+enum Priority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Card {
+  id                String    @id @default(cuid())
+  projectId         String
+  listId            String
+  title             String    @db.VarChar(255)
+  /// Sanitized HTML produced by the rich-text editor.
+  description       String?   @db.Text
+  priority          Priority  @default(NONE)
+  dueDate           DateTime?
+  position          String    @db.VarChar(191)
+  completedAt       DateTime?
+  createdById       String
+  dueReminderSentAt DateTime?
+  overdueNotifiedAt DateTime?
+  archivedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  list          BoardList       @relation(fields: [listId], references: [id], onDelete: Cascade)
+  createdBy     User            @relation("CardCreator", fields: [createdById], references: [id])
+  assignees     CardAssignee[]
+  labels        CardLabel[]
+  checklist     ChecklistItem[]
+  comments      Comment[]
+  attachments   Attachment[]
+  activities    ActivityLog[]
+  notifications Notification[]
+
+  @@index([listId, position])
+  @@index([projectId])
+  @@index([dueDate])
+  @@index([createdById])
+}
+
+model CardAssignee {
+  cardId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+  @@index([userId])
+}
+
+model Label {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cards   CardLabel[]
+
+  @@unique([projectId, name])
+}
+
+model CardLabel {
+  cardId  String
+  labelId String
+
+  card  Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, labelId])
+  @@index([labelId])
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  cardId    String
+  title     String   @db.VarChar(255)
+  isDone    Boolean  @default(false)
+  position  String   @db.VarChar(191)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, position])
+}
+
+// ─────────────────────────── Collaboration ──────────────────────────
+
+model Comment {
+  id        String    @id @default(cuid())
+  cardId    String
+  authorId  String
+  body      String    @db.Text
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  card        Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id])
+  mentions    Mention[]
+  attachments Attachment[]
+
+  @@index([cardId, createdAt])
+  @@index([authorId])
+}
+
+model Mention {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([userId])
+}
+
+enum AttachmentStatus {
+  PENDING
+  READY
+}
+
+/// Metadata only — the bytes live in object storage under `storageKey`.
+model Attachment {
+  id         String           @id @default(cuid())
+  projectId  String
+  cardId     String?
+  commentId  String?
+  messageId  String?
+  uploaderId String
+  fileName   String           @db.VarChar(255)
+  mimeType   String
+  size       Int
+  storageKey String           @unique @db.VarChar(512)
+  status     AttachmentStatus @default(PENDING)
+  deletedAt  DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  card     Card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  message  Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  uploader User     @relation(fields: [uploaderId], references: [id])
+
+  @@index([projectId])
+  @@index([cardId])
+  @@index([commentId])
+  @@index([messageId])
+  @@index([uploaderId])
+}
+
+// ─────────────────────────────── Chat ───────────────────────────────
+
+enum ChannelType {
+  PROJECT
+  DIRECT
+}
+
+/// PROJECT: one per project, access follows the project (FR-31).
+/// DIRECT: exactly two members; `directKey` = sorted user ids, so a pair has one channel (FR-32).
+model Channel {
+  id            String      @id @default(cuid())
+  type          ChannelType
+  projectId     String?     @unique
+  directKey     String?     @unique
+  lastMessageAt DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  project  Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  members  ChannelMember[]
+  messages Message[]
+
+  @@index([lastMessageAt])
+}
+
+/// Read state per user (FR-33). For project channels rows are created lazily on first visit.
+model ChannelMember {
+  channelId  String
+  userId     String
+  lastReadAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String    @id @default(cuid())
+  channelId       String
+  authorId        String
+  /// Generated by the client; makes sending idempotent across reconnects (PRD §6).
+  clientMessageId String    @db.VarChar(64)
+  body            String    @db.Text
+  replyToId       String?
+  editedAt        DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  channel     Channel           @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author      User              @relation(fields: [authorId], references: [id])
+  replyTo     Message?          @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  replies     Message[]         @relation("MessageReply")
+  reactions   MessageReaction[]
+  mentions    MessageMention[]
+  attachments Attachment[]
+
+  @@unique([authorId, clientMessageId])
+  @@index([channelId, createdAt])
+  @@index([replyToId])
+}
+
+model MessageReaction {
+  messageId String
+  userId    String
+  emoji     String   @db.VarChar(32)
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@index([userId])
+}
+
+model MessageMention {
+  messageId String
+  userId    String
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+  @@index([userId])
+}
+
+// ────────────────────────────── System ──────────────────────────────
+
+enum NotificationType {
+  CARD_ASSIGNED
+  MENTIONED
+  COMMENT_ADDED
+  DUE_SOON
+  OVERDUE
+  CHAT_MENTION
+  ANNOUNCEMENT
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  actorId   String?
+  projectId String?
+  cardId    String?
+  /// Denormalized display data (card title, comment excerpt…) so the feed renders without joins.
+  data      Json
+  readAt    DateTime?
+  emailedAt DateTime?
+  createdAt DateTime         @default(now())
+
+  user    User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor   User?    @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  card    Card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([actorId])
+  @@index([projectId])
+  @@index([cardId])
+}
+
+/// Append-only. Written in the same transaction as the change it describes.
+model ActivityLog {
+  id         String   @id @default(cuid())
+  projectId  String
+  cardId     String?
+  actorId    String
+  entityType String
+  entityId   String
+  action     String
+  diff       Json
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  card    Card?   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  actor   User    @relation(fields: [actorId], references: [id])
+
+  @@index([projectId, createdAt])
+  @@index([cardId, createdAt])
+  @@index([actorId])
+}
+
+/// Organization-level security events (role changes, deactivation…).
+model AuditLog {
+  id         String   @id @default(cuid())
+  orgId      String
+  actorId    String
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id])
+
+  @@index([orgId, createdAt])
+  @@index([actorId])
+}
+
+// ─── Announcements (FR-35, FR-36) ─────────────────────────────────────
+
+enum AnnouncementScope {
+  ORGANIZATION
+  DIVISION
+  PROJECT
+}
+
+model Announcement {
+  id         String            @id @default(cuid())
+  orgId      String
+  scope      AnnouncementScope
+  /// Set for DIVISION scope.
+  divisionId String?
+  /// Set for PROJECT scope.
+  projectId  String?
+  authorId   String
+  title      String            @db.VarChar(200)
+  /// Sanitized HTML produced by the rich-text editor.
+  body       String            @db.Text
+  pinnedAt   DateTime?
+  pinnedById String?
+  editedAt   DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  organization Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  division     Division?             @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  project      Project?              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author       User                  @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+  pinnedBy     User?                 @relation("AnnouncementPinner", fields: [pinnedById], references: [id], onDelete: SetNull)
+  comments     AnnouncementComment[]
+  reads        AnnouncementRead[]
+
+  @@index([orgId, createdAt])
+  @@index([divisionId])
+  @@index([projectId])
+  @@index([authorId])
+  @@index([pinnedById])
+}
+
+model AnnouncementComment {
+  id             String    @id @default(cuid())
+  announcementId String
+  authorId       String
+  /// Plain text with lightweight markdown (same as chat).
+  body           String    @db.Text
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  author       User         @relation(fields: [authorId], references: [id])
+
+  @@index([announcementId, createdAt])
+  @@index([authorId])
+}
+
+model AnnouncementRead {
+  announcementId String
+  userId         String
+  readAt         DateTime @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, userId])
+  @@index([userId])
+}

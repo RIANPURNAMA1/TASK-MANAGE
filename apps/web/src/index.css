@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+  body {
+    @apply bg-canvas font-sans text-body text-ink antialiased;
+    font-optical-sizing: auto;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-line-focus ring-offset-1;
+  }
+}
+
+@layer components {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  /* Rich-text content rendered from the editor (descriptions). */
+  .prose-nexus {
+    @apply text-body text-ink;
+  }
+  .prose-nexus p {
+    @apply my-1.5;
+  }
+  .prose-nexus h1,
+  .prose-nexus h2,
+  .prose-nexus h3 {
+    @apply mb-1 mt-3 text-h3;
+  }
+  .prose-nexus ul {
+    @apply my-1.5 list-disc pl-5;
+  }
+  .prose-nexus ol {
+    @apply my-1.5 list-decimal pl-5;
+  }
+  .prose-nexus a {
+    @apply text-brand underline;
+  }
+  .prose-nexus code {
+    @apply rounded bg-canvas-deep px-1 font-mono text-caption;
+  }
+  .prose-nexus pre {
+    @apply my-2 overflow-x-auto rounded-lg bg-ink p-3 font-mono text-caption text-white;
+  }
+  .prose-nexus blockquote {
+    @apply my-2 border-l-2 border-line pl-3 text-ink-muted;
+  }
+  .prose-nexus .ProseMirror {
+    @apply min-h-[96px] outline-none;
+  }
+  .prose-nexus .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply pointer-events-none float-left h-0 text-ink-subtle;
+  }
+}

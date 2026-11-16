@@ -1,0 +1,38 @@
+/**
+ * Query-key factory. Hierarchical so that invalidating a prefix
+ * (e.g. `qk.card(id)`) also refreshes nested data (comments, activity).
+ */
+export const qk = {
+  meta: ['meta'] as const,
+  myTasks: ['my-tasks'] as const,
+  dashboard: ['dashboard'] as const,
+  announcements: ['announcements'] as const,
+  announcementList: (filter: { scope?: string; q?: string; unread?: boolean }) => ['announcements', 'list', filter] as const,
+  announcement: (id: string) => ['announcements', 'detail', id] as const,
+  announcementComments: (id: string) => ['announcements', 'detail', id, 'comments'] as const,
+  announcementUnread: ['announcements', 'unread'] as const,
+  announcementTargets: ['announcements', 'targets'] as const,
+  users: (q: string) => ['users', q] as const,
+  divisions: ['divisions'] as const,
+  divisionMembers: (id: string) => ['divisions', id, 'members'] as const,
+  projects: ['projects'] as const,
+  projectList: (filter: { divisionId?: string; archived?: boolean }) => ['projects', filter] as const,
+  project: (id: string) => ['project', id] as const,
+  projectMembers: (id: string) => ['project', id, 'members'] as const,
+  projectActivity: (id: string) => ['project', id, 'activity'] as const,
+  projectArchived: (id: string) => ['project', id, 'archived'] as const,
+  board: (projectId: string) => ['board', projectId] as const,
+  card: (id: string) => ['card', id] as const,
+  cardComments: (id: string) => ['card', id, 'comments'] as const,
+  cardActivity: (id: string) => ['card', id, 'activity'] as const,
+  signedUrl: (attachmentId: string, disposition: string) =>
+    ['attachment', attachmentId, disposition] as const,
+  notifications: ['notifications'] as const,
+  chatChannels: ['chat', 'channels'] as const,
+  chatChannel: (id: string) => ['chat', 'channel', id] as const,
+  chatMessages: (channelId: string) => ['chat', 'messages', channelId] as const,
+  sessions: ['sessions'] as const,
+  adminUsers: (filter: { q?: string; status?: string }) => ['admin', 'users', filter] as const,
+  adminUsersAll: ['admin', 'users'] as const,
+  invitations: ['admin', 'invitations'] as const,
+};

@@ -1,0 +1,28 @@
+{
+  "name": "@nexus/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "build": "tsup",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexus/db": "workspace:*",
+    "@nexus/jobs": "workspace:*",
+    "@nexus/shared": "workspace:*",
+    "@socket.io/redis-emitter": "^5.1.0",
+    "bullmq": "^5.34.0",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.4.2",
+    "pino": "^9.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "pino-pretty": "^13.0.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2"
+  }
+}
