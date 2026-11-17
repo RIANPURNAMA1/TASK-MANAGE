@@ -62,6 +62,7 @@ model User {
   pinnedAnnouncements  Announcement[]        @relation("AnnouncementPinner")
   announcementComments AnnouncementComment[]
   announcementReads    AnnouncementRead[]
+  personalAgent        PersonalAgent?
 }
 
 enum DeviceType {
@@ -380,11 +381,15 @@ model ChecklistItem {
   title     String   @db.VarChar(255)
   isDone    Boolean  @default(false)
   position  String   @db.VarChar(191)
+  /// Set on items an agent owns (its plan); human-made items keep these null and are never touched.
+  agentKey         String?  @db.VarChar(64)
+  createdByAgentId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
+  @@unique([cardId, agentKey])
   @@index([cardId, position])
 }
 
@@ -692,4 +697,375 @@ model AnnouncementRead {
 
   @@id([announcementId, userId])
   @@index([userId])
+}
+
+
+// ─────────────────────────── Workbase Agent ─────────────────────────
+// Playbook: prompt-workbase-agent-hermes.md (H1). Agents never exceed their owner's
+// permissions; every tool call is logged as an AgentStep. Vector ids stay null until a vector
+// store (Qdrant) is deployed — memories and knowledge are searchable through MySQL meanwhile.
+
+enum AgentProvider {
+  ANTHROPIC
+  OPENAI
+  GEMINI
+  GROQ
+}
+
+enum RunStatus {
+  QUEUED
+  RUNNING
+  WAITING
+  AWAITING_APPROVAL
+  COMPLETED
+  NEEDS_REVIEW
+  FAILED
+  CANCELLED
+}
+
+enum StepType {
+  LLM
+  TOOL
+  SYSTEM
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum MemoryScope {
+  USER
+  PROJECT
+  DIVISION
+  ORG
+}
+
+enum MemorySource {
+  MANUAL
+  AGENT_PROPOSED
+}
+
+enum MemoryStatus {
+  PROPOSED
+  ACTIVE
+  ARCHIVED
+}
+
+enum SkillStatus {
+  PROPOSED
+  APPROVED
+  DISABLED
+}
+
+enum SkillOutcome {
+  SUCCESS
+  FAILED
+  REVISED
+}
+
+enum DocStatus {
+  UPLOADED
+  INDEXING
+  READY
+  FAILED
+}
+
+enum ConversationType {
+  PERSONAL
+  PROJECT_CHAT
+}
+
+enum MessageRole {
+  USER
+  AGENT
+  SYSTEM
+}
+
+/// A Team Agent: an "AI employee" of a division, with its own RBAC (allowedTools).
+model Agent {
+  id               String        @id @default(cuid())
+  orgId            String
+  divisionId       String?
+  name             String        @db.VarChar(80)
+  description      String?       @db.VarChar(500)
+  provider         AgentProvider @default(ANTHROPIC)
+  model            String        @db.VarChar(100)
+  systemPrompt     String?       @db.Text
+  /// 0 = suggest only, 1 = internal writes need confirmation, 2 = internal writes run directly.
+  /// External actions always need approval regardless of level.
+  autonomyLevel    Int           @default(1)
+  allowedTools     Json
+  /// Real user row the agent acts as: it can be a project member, a card assignee and a chat author.
+  /// Its permissions ARE this user's memberships (its own RBAC), narrowed by allowedTools.
+  botUserId        String?       @unique
+  monthlyBudgetUsd Decimal       @default(20) @db.Decimal(10, 2)
+  isActive         Boolean       @default(true)
+  createdById      String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([orgId, name])
+  @@index([orgId, divisionId])
+}
+
+/// Everyone's private assistant. Effective permissions = owner's permissions ∩ delegatedPermissions.
+/// LLM provider credentials set by an admin from Settings → Asisten AI (encrypted at rest).
+/// A row here takes precedence over the matching API key in `.env`.
+model AgentProviderConfig {
+  id               String        @id @default(cuid())
+  provider         AgentProvider @unique
+  encryptedApiKey  String        @db.Text
+  model            String        @db.VarChar(100)
+  updatedById      String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model PersonalAgent {
+  id                   String        @id @default(cuid())
+  userId               String        @unique
+  provider             AgentProvider @default(ANTHROPIC)
+  model                String        @db.VarChar(100)
+  delegatedPermissions Json
+  monthlyBudgetUsd     Decimal       @default(5) @db.Decimal(10, 2)
+  isActive             Boolean       @default(true)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AgentRun {
+  id              String    @id @default(cuid())
+  orgId           String
+  agentId         String?
+  personalAgentId String?
+  parentRunId     String?
+  conversationId  String?
+  scheduleId      String?
+  cardId          String?
+  projectId       String?
+  /// The human on whose behalf the run executes (permissions are derived from them).
+  triggeredById   String?
+  status          RunStatus @default(QUEUED)
+  instruction     String    @db.Text
+  result          String?   @db.LongText
+  error           String?   @db.Text
+  /// 0 = top-level run, 1 = sub-run (sub-runs may not spawn runs of their own).
+  depth           Int       @default(0)
+  inputTokens     Int       @default(0)
+  outputTokens    Int       @default(0)
+  costUsd         Decimal   @default(0) @db.Decimal(12, 6)
+  warnings        Json?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  steps     AgentStep[]
+  approvals AgentApproval[]
+
+  @@index([orgId, createdAt])
+  @@index([personalAgentId, createdAt])
+  @@index([agentId, createdAt])
+  @@index([parentRunId])
+  @@index([conversationId])
+  @@index([status])
+}
+
+model AgentStep {
+  id           String   @id @default(cuid())
+  runId        String
+  seq          Int
+  type         StepType
+  toolName     String?  @db.VarChar(100)
+  input        Json?
+  output       String?  @db.LongText
+  isError      Boolean  @default(false)
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Decimal  @default(0) @db.Decimal(12, 6)
+  durationMs   Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, seq])
+  @@index([toolName])
+}
+
+/// A tool call that waits for a human: "external" tools always, "internal_write" at autonomy 1.
+model AgentApproval {
+  id          String         @id @default(cuid())
+  runId       String
+  toolName    String         @db.VarChar(100)
+  input       Json
+  risk        String         @db.VarChar(20)
+  summary     String         @db.VarChar(500)
+  status      ApprovalStatus @default(PENDING)
+  /// Who must decide: the person the agent acts for.
+  ownerId     String
+  decidedById String?
+  decidedAt   DateTime?
+  createdAt   DateTime       @default(now())
+
+  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, status])
+  @@index([runId])
+}
+
+model AgentSkill {
+  id                String      @id @default(cuid())
+  orgId             String
+  divisionId        String?
+  name              String      @db.VarChar(120)
+  /// When to use it — also what relevance matching reads.
+  description       String      @db.Text
+  instructions      String      @db.Text
+  status            SkillStatus @default(PROPOSED)
+  version           Int         @default(1)
+  supersedesId      String?
+  sourceRunId       String?
+  proposedByAgentId String?
+  approvedById      String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  usages SkillUsage[]
+
+  @@index([orgId, divisionId, status])
+}
+
+model SkillUsage {
+  id        String       @id @default(cuid())
+  skillId   String
+  runId     String
+  outcome   SkillOutcome
+  createdAt DateTime     @default(now())
+
+  skill AgentSkill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([skillId])
+}
+
+model AgentMemory {
+  id          String       @id @default(cuid())
+  orgId       String
+  scope       MemoryScope
+  scopeId     String
+  content     String       @db.Text
+  source      MemorySource @default(MANUAL)
+  status      MemoryStatus @default(ACTIVE)
+  sourceRunId String?
+  vectorId    String?
+  lastUsedAt  DateTime?
+  createdById String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([orgId, scope, scopeId, status])
+}
+
+model KnowledgeDoc {
+  id           String      @id @default(cuid())
+  orgId        String
+  scope        MemoryScope
+  scopeId      String
+  title        String      @db.VarChar(255)
+  fileKey      String?     @db.VarChar(500)
+  mimeType     String      @db.VarChar(100)
+  status       DocStatus   @default(UPLOADED)
+  chunkCount   Int         @default(0)
+  error        String?     @db.Text
+  uploadedById String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  chunks KnowledgeChunk[]
+
+  @@index([orgId, scope, scopeId])
+}
+
+model KnowledgeChunk {
+  id         String  @id @default(cuid())
+  docId      String
+  seq        Int
+  text       String  @db.Text
+  vectorId   String?
+  tokenCount Int     @default(0)
+
+  doc KnowledgeDoc @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@unique([docId, seq])
+}
+
+model AgentSchedule {
+  id              String    @id @default(cuid())
+  orgId           String
+  agentId         String?
+  personalAgentId String?
+  createdById     String
+  naturalText     String    @db.VarChar(500)
+  cronExpr        String    @db.VarChar(100)
+  timezone        String    @default("Asia/Jakarta") @db.VarChar(60)
+  instruction     String    @db.Text
+  targetCardId    String?
+  targetProjectId String?
+  isActive        Boolean   @default(true)
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([isActive, nextRunAt])
+  @@index([createdById])
+}
+
+model AgentConversation {
+  id              String           @id @default(cuid())
+  type            ConversationType
+  personalAgentId String?
+  projectId       String?
+  title           String?          @db.VarChar(200)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  messages AgentMessage[]
+
+  @@index([personalAgentId, updatedAt])
+  @@index([projectId])
+}
+
+model AgentMessage {
+  id             String      @id @default(cuid())
+  conversationId String
+  role           MessageRole
+  content        String      @db.LongText
+  runId          String?
+  /// UI hints, e.g. { approvalId } for confirm buttons.
+  metadata       Json?
+  createdAt      DateTime    @default(now())
+
+  conversation AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+/// OAuth connection of an organization to an external tool provider. Credentials are
+/// AES-256-GCM encrypted at rest (key from AGENT_ENCRYPTION_KEY).
+model McpConnection {
+  id                   String   @id @default(cuid())
+  orgId                String
+  provider             String   @db.VarChar(40)
+  encryptedCredentials String   @db.Text
+  scopes               Json
+  status               String   @default("ACTIVE") @db.VarChar(20)
+  connectedById        String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([orgId, provider])
 }

@@ -12,8 +12,8 @@ import { api } from './api';
 import { qk } from './queryKeys';
 import { socket } from './socket';
 
-/** Chat/presence events are handled by `useChatRealtime`, announcements by `useAnnouncementRealtime`. */
-type CoreEvent = Exclude<keyof ServerToClientEvents, `chat:${string}` | 'presence:changed' | 'announcement:changed'>;
+/** Chat/presence events are handled by `useChatRealtime`, announcements by `useAnnouncementRealtime`, agent events by `useAgentRealtime`. */
+type CoreEvent = Exclude<keyof ServerToClientEvents, `chat:${string}` | `agent:${string}` | 'presence:changed' | 'announcement:changed'>;
 type Handlers = { [E in CoreEvent]: ServerToClientEvents[E] };
 
 /**

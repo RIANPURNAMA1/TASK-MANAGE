@@ -54,6 +54,26 @@ const schema = z
     MAIL_FROM: z.string().default('Mendunia Workbase <no-reply@nexustask.local>'),
     TZ_DEFAULT: z.string().default('Asia/Jakarta'),
     DAILY_DIGEST_HOUR: z.coerce.number().int().min(0).max(23).default(8),
+
+    // Workbase Agent. A provider is offered only when its key is set; leave blank to disable it.
+    AGENT_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
+    ANTHROPIC_API_KEY: optional,
+    OPENAI_API_KEY: optional,
+    GEMINI_API_KEY: optional,
+    GROQ_API_KEY: optional,
+    /** `brave` or `tavily`; needs the matching key below. */
+    AGENT_SEARCH_PROVIDER: optional,
+    BRAVE_API_KEY: optional,
+    TAVILY_API_KEY: optional,
+    /** 32 bytes as 64 hex chars or base64; encrypts MCP connector tokens at rest. */
+    AGENT_ENCRYPTION_KEY: optional,
+    /** Exact prices per model, e.g. {"gpt-4o-mini":{"input":0.15,"output":0.6}} (USD per 1M tokens). */
+    AGENT_PRICING_JSON: optional,
+    AGENT_MAX_RUN_COST_USD: z.coerce.number().positive().default(0.5),
+    AGENT_MAX_STEPS: z.coerce.number().int().min(1).max(40).default(12),
   })
   .refine(
     (e) => e.STORAGE_DRIVER !== 's3' || (e.S3_ENDPOINT && e.S3_BUCKET && e.S3_ACCESS_KEY_ID && e.S3_SECRET_ACCESS_KEY),

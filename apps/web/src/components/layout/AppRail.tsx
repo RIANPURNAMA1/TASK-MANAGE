@@ -11,6 +11,7 @@ import {
   Moon,
   Settings,
   ShieldCheck,
+  Sparkles,
   SquarePen,
   Sun,
   UsersRound,
@@ -21,6 +22,7 @@ import { useLogout } from '../../features/auth/hooks';
 import { useChatUnreadTotal } from '../../features/chat/hooks';
 import { useCurrentUser } from '../../stores/auth';
 import { useThemeStore } from '../../stores/theme';
+import { useAgentUi } from '../../features/agent/store';
 import { useUiStore } from '../../stores/ui';
 import { Avatar, Menu, MenuItem, MenuSeparator, Tooltip } from '../ui';
 import { NotificationBell } from './NotificationBell';
@@ -106,6 +108,7 @@ export function AppRail() {
       <RailLink entry={{ label: 'Pengaturan', to: '/settings', icon: <Settings /> }} />
 
       <div className="mt-auto flex flex-col items-center gap-3">
+        <AgentToggle />
         <ThemeToggle />
         <Tooltip content="Buat tugas baru (Ctrl+K untuk mencari)" side="right">
           <button
@@ -120,6 +123,19 @@ export function AppRail() {
         <ProfileMenu />
       </div>
     </nav>
+  );
+}
+
+/** Opens the Personal Agent chat drawer (Ctrl/Cmd + J works from anywhere). */
+function AgentToggle() {
+  const open = useAgentUi((s) => s.open);
+  const toggle = useAgentUi((s) => s.toggle);
+  return (
+    <Tooltip content="Asisten AI (Ctrl+J)" side="right">
+      <button type="button" onClick={toggle} aria-label="Asisten AI" aria-pressed={open} className={railItemClass(open)}>
+        <Sparkles />
+      </button>
+    </Tooltip>
   );
 }
 

@@ -5,11 +5,16 @@ import { env } from './config/env';
 import { logger } from './lib/logger';
 import { closeQueues, startJobs } from './lib/queue';
 import { closeRedis } from './lib/redis';
+import { failInterruptedRuns } from './modules/agents/runner';
+import { startScheduleTicker } from './modules/agents/schedules.service';
 import { createRealtimeServer } from './realtime/socket';
 
 const httpServer = createServer(createApp());
 const realtime = createRealtimeServer(httpServer);
 startJobs();
+// Workbase Agent: runs cut off by a restart can never finish; due schedules are polled every minute.
+void failInterruptedRuns().catch((err) => logger.error({ err }, 'failInterruptedRuns'));
+startScheduleTicker();
 
 httpServer.listen(env.API_PORT, () => {
   logger.info(`API listening on http://localhost:${env.API_PORT}`);

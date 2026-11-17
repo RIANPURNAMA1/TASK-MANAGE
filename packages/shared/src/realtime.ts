@@ -1,3 +1,4 @@
+import type { AgentRealtime } from './agent';
 import type { CardSummary, LabelDTO, ListDTO, MessageDTO, NotificationDTO } from './types';
 
 /**
@@ -7,7 +8,7 @@ import type { CardSummary, LabelDTO, ListDTO, MessageDTO, NotificationDTO } from
  * and `user:<id>` (joined automatically on connect).
  */
 
-export interface ServerToClientEvents {
+export interface ServerToClientEvents extends AgentRealtime {
   'list:upserted': (payload: { projectId: string; list: ListDTO }) => void;
   'list:removed': (payload: { projectId: string; listId: string }) => void;
   'card:upserted': (payload: { projectId: string; card: CardSummary }) => void;

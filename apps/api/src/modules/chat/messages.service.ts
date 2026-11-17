@@ -152,6 +152,13 @@ export async function sendMessage(
       afterCommit(() => broadcast(channel, 'chat:message', dto));
       return dto;
     });
+    // H12: @mention of a Team Agent's bot user starts a run (only on a freshly created message,
+    // so a client retry never triggers it twice). Fire-and-forget; never fails the send.
+    if (channel.type === 'PROJECT' && (input.mentionIds?.length ?? 0) > 0) {
+      void import('../agents/chat-mention.service')
+        .then((m) => m.triggerAgentsFromMessage(actor, channel, { id: message.id, body }, [...new Set(input.mentionIds)]))
+        .catch(() => undefined);
+    }
     return { message, created: true };
   } catch (err) {
     // Two concurrent retries with the same clientMessageId: the other request won.

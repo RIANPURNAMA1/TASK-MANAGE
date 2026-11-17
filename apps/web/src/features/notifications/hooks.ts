@@ -30,7 +30,9 @@ export function useUnreadCount(): number {
 /** Mirrors the unread count onto the tab title / OS badge. */
 export function useUnreadBadge() {
   const unread = useUnreadCount();
-  useEffect(() => platform.setBadgeCount(unread), [unread]);
+  useEffect(() => {
+    platform.setBadgeCount(unread);
+  }, [unread]);
 }
 
 function patchFeed(qc: QueryClient, fn: (feed: Feed) => Feed) {

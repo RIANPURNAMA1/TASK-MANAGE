@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type DragEvent, type FormEvent, type React
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { AppWindow, Bell, BellRing, Building2, Camera, Download, Info, KeyRound, Lock, Mail, Monitor, MonitorSmartphone, Moon, Palette, Power, RefreshCw, ShieldCheck, Sun, Trash2, Upload, User } from 'lucide-react';
+import { AppWindow, Bell, BellRing, Building2, Camera, Download, Info, KeyRound, Lock, Mail, Monitor, MonitorSmartphone, Moon, Palette, Power, RefreshCw, ShieldCheck, Sparkles, Sun, Trash2, Upload, User } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   EMAIL_DIGEST_LABEL,
@@ -16,18 +16,20 @@ import { Avatar, Button, Field, Input, Spinner, Toggle } from '../../components/
 import { errorMessage } from '../../lib/errors';
 import { useCurrentUser } from '../../stores/auth';
 import { useThemeStore, type ThemeMode } from '../../stores/theme';
+import { AgentSettingsSection } from '../agent/AgentSettings';
 import { useDesktopUpdate } from '../desktop/useDesktopUpdate';
 import { useAvatarMutations, useChangePassword, useUpdateMe } from './hooks';
 import { SessionsSection } from './SessionsSection';
 import { SettingsCard } from './SettingsCard';
 
-type Section = 'profile' | 'security' | 'sessions' | 'notifications' | 'appearance' | 'app';
+type Section = 'profile' | 'security' | 'sessions' | 'notifications' | 'agent' | 'appearance' | 'app';
 
 const SECTIONS: { value: Section; label: string; icon: ReactNode }[] = [
   { value: 'profile', label: 'Profil', icon: <User /> },
   { value: 'security', label: 'Keamanan', icon: <ShieldCheck /> },
   { value: 'sessions', label: 'Sesi Aktif', icon: <MonitorSmartphone /> },
   { value: 'notifications', label: 'Notifikasi', icon: <Bell /> },
+  { value: 'agent', label: 'Asisten AI', icon: <Sparkles /> },
   { value: 'appearance', label: 'Tampilan', icon: <Palette /> },
   // Desktop only (PRD §4): version, signed auto-update, launch at login.
   ...(platform.kind === 'desktop' ? [{ value: 'app' as const, label: 'Aplikasi', icon: <AppWindow /> }] : []),
@@ -86,6 +88,7 @@ export function SettingsPage() {
           {section === 'security' && <SecuritySection />}
           {section === 'sessions' && <SessionsSection />}
           {section === 'notifications' && <NotificationsSection />}
+          {section === 'agent' && <AgentSettingsSection />}
           {section === 'appearance' && <AppearanceSection />}
           {section === 'app' && <DesktopAppSection />}
         </div>

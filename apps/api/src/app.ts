@@ -12,6 +12,7 @@ import { localStorageRouter, STORAGE_PUBLIC_PATH } from './lib/storage';
 import { authenticate } from './middleware/authenticate';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import { adminRouter } from './modules/admin/admin.routes';
+import { agentsRouter } from './modules/agents/agents.routes';
 import { announcementsRouter } from './modules/announcements/announcements.routes';
 import { attachmentsRouter } from './modules/attachments/attachments.routes';
 import { authRouter } from './modules/auth/auth.routes';
@@ -68,6 +69,7 @@ export function createApp() {
   api.use(authenticate);
   api.use(usersRouter);
   api.use(dashboardRouter);
+  api.use(agentsRouter);
   api.use(announcementsRouter);
   api.use(divisionsRouter);
   api.use(projectsRouter);

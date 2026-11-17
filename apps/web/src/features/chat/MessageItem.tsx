@@ -1,10 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { AlertCircle, Ban, Check, CheckCheck, Clock3, CornerUpLeft, Pencil, Reply, RotateCcw, Trash2 } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { AlertCircle, Ban, Check, CheckCheck, Clock3, CornerUpLeft, ListPlus, Pencil, Reply, RotateCcw, Trash2 } from 'lucide-react';
 import type { ChannelDetail, MessageDTO, UserSummary } from '@nexus/shared';
 import { Avatar, Button, ConfirmDialog } from '../../components/ui';
 import { plainText } from '../../lib/chatMarkdown';
 import { formatDateTime } from '../../lib/format';
+import { api } from '../../lib/api';
+import { toastError } from '../../lib/errors';
 import { useCurrentUser } from '../../stores/auth';
 import { AttachmentItem } from '../card/Attachments';
 import { MentionTextarea, activeMentionIds } from '../card/MentionTextarea';
@@ -37,6 +41,13 @@ export function MessageItem({ message, channel, members, startsGroup, highlighte
   const { retry } = useSendMessage();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // Team Agents' bot accounts, to know which authors are agents (cached; one request for the whole chat).
+  const agents = useQuery({ queryKey: ['agents', 'team'], queryFn: api.agents.teamAgents, staleTime: 60_000 });
+  const makeTask = useMutation({
+    mutationFn: () => api.agents.messageToTask(message.id),
+    onSuccess: () => toast.success('Task dibuat dari balasan agent.'),
+    onError: (e) => toastError(e),
+  });
 
   const mine = message.author.id === me.id;
   const deleted = message.deletedAt !== null;
@@ -148,6 +159,11 @@ export function MessageItem({ message, channel, members, startsGroup, highlighte
                 <Reply className="h-4 w-4" />
               </ActionButton>
               <EmojiPickerButton align={mine ? 'right' : 'left'} onPick={(emoji) => react.mutate({ id: message.id, emoji })} />
+              {!mine && channel.type === 'PROJECT' && agents.data?.some((a) => a.botUser?.id === message.author.id) && (
+                <ActionButton label="Jadikan task" onClick={() => makeTask.mutate()}>
+                  <ListPlus className="h-4 w-4" />
+                </ActionButton>
+              )}
               {mine && (
                 <>
                   <ActionButton label="Edit" onClick={() => setEditing(true)}>

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { AgentPanel, AgentShortcut } from '../../features/agent/AgentPanel';
+import { useAgentRealtime } from '../../features/agent/hooks';
 import { useAnnouncementRealtime } from '../../features/announcements/hooks';
 import { CardModal } from '../../features/card/CardModal';
 import { DesktopBridge } from '../../features/desktop/DesktopBridge';
@@ -20,6 +22,7 @@ export function AppShell() {
   useChatRealtime();
   useUnreadBadge();
   useAnnouncementRealtime();
+  useAgentRealtime();
   const { pathname } = useLocation();
   const showProjects = !OWN_SUBNAV.some((prefix) => pathname.startsWith(prefix));
 
@@ -30,6 +33,8 @@ export function AppShell() {
       <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-paper">
         <Outlet />
       </main>
+      <AgentPanel />
+      <AgentShortcut />
       <CardModal />
       <DesktopBridge />
       <CommandPalette />
