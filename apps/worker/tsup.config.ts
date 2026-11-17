@@ -9,4 +9,6 @@ export default defineConfig({
   clean: true,
   // Workspace packages ship TypeScript source, so bundle them into the output.
   noExternal: [/^@nexus\//],
+  // See apps/api/tsup.config.ts: Prisma and other workspace-only deps must stay external.
+  external: ['@prisma/client', '.prisma/client', 'nodemailer', 'fractional-indexing'],
 });
