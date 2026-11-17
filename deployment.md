@@ -131,7 +131,7 @@ Isi konfigurasi production:
 NODE_ENV=production
 
 # ── Database ────────────────────────────────────────────────────────────────
-DATABASE_URL="mysql://workbase:PASSWORD_DATABASE@127.0.0.1:3306/workbase"
+DATABASE_URL="mysql://workbase:PasswordKuat123!@127.0.0.1:3306/workbase"
 
 # ── Web / API ───────────────────────────────────────────────────────────────
 WEB_URL=https://workbase.mendunia.id
@@ -788,6 +788,10 @@ kalau tidak API menolak boot dengan `Invalid environment configuration`.
 | Log `Invalid environment configuration` | Variabel di `.env` kosong/salah format: `DATABASE_URL` bukan URL valid, secret < 32 karakter, atau `STORAGE_DRIVER=s3` tanpa variabel S3 |
 | Log `.env: not found` / `bad option: --env-file` | Path `--env-file` di `ecosystem.config.cjs` salah, atau Node < 20.6 (`node -v`) |
 | Log `Dynamic require of "fs" is not supported` | Build lama yang membundel Prisma ke dalam `dist`. Ambil kode terbaru (`apps/api/tsup.config.ts` sudah memakai `external`), lalu `git pull && npm ci --include=dev && npm run build && pm2 restart workbase-api` |
+| Error sama persis setelah build ulang (nama chunk di log tidak berubah) | PM2 menjalankan folder lain dari yang Anda build. Cek `pm2 describe workbase-api \| grep -E "script path\|exec cwd"` — harus `/var/www/workbase/apps/api`. Kalau beda: `pm2 delete workbase-api && cd /var/www/workbase && pm2 start ecosystem.config.cjs && pm2 save` |
+| `git pull`: `detected dubious ownership` | Repo dimiliki user lain. Jangan deploy dari salinan itu; deploy hanya dari `/var/www/workbase` (root) |
+| `P3009 ... found failed migrations` | Ada migrasi gagal di `_prisma_migrations`. Baca `logs`-nya, perbaiki akar masalah, lalu `prisma migrate resolve --rolled-back <nama>` (atau `--applied` bila semua perubahannya sudah ada) sebelum `npm run db:deploy`. Backup dulu |
+| `npm warn EBADENGINE` saat `npm ci` | Node terlalu lama. Dokumen ini mensyaratkan Node 22 (beberapa dependency butuh ≥ 22.12): `node -v` |
 | Log `Cannot find module` / `dist/server.js` tidak ada | Build belum dijalankan: `npm run build` |
 | Log `P1001: Can't reach database server` | MySQL mati / `DATABASE_URL` salah: `systemctl status mysql`, `mysql -u workbase -p -e "SELECT 1"` |
 | Log `P1000: Authentication failed` | Password salah, atau ada karakter khusus belum di-encode di URL (`@` → `%40`, `#` → `%23`); pakai password alfanumerik |
