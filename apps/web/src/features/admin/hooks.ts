@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { CreateInvitationInput, DeactivateUserInput, OrgRole } from '@nexus/shared';
+import type { CreateInvitationInput, CreateUserInput, DeactivateUserInput, OrgRole } from '@nexus/shared';
 import { api } from '../../lib/api';
 import { toastError } from '../../lib/errors';
 import { qk } from '../../lib/queryKeys';
@@ -18,6 +18,13 @@ export function useAdminUserMutations() {
   const onError = (error: unknown) => toastError(error);
 
   return {
+    create: useMutation({
+      mutationFn: (input: CreateUserInput) => api.admin.createUser(input),
+      onSuccess: (user) => {
+        refresh();
+        toast.success(`${user.name} ditambahkan.`);
+      },
+    }),
     setRole: useMutation({
       mutationFn: ({ id, role }: { id: string; role: OrgRole }) => api.admin.setRole(id, role),
       onSuccess: () => {

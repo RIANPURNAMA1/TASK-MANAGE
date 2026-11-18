@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { LogOut, Monitor, MoreHorizontal, Search, UserCheck, UserX } from 'lucide-react';
+import { LogOut, Monitor, MoreHorizontal, Search, UserCheck, UserPlus, UserX } from 'lucide-react';
 import {
   ORG_ROLES,
   ORG_ROLE_LABEL,
@@ -11,6 +11,7 @@ import {
 } from '@nexus/shared';
 import {
   Avatar,
+  Button,
   ConfirmDialog,
   ErrorState,
   Input,
@@ -22,6 +23,7 @@ import {
 } from '../../components/ui';
 import { useCurrentUser } from '../../stores/auth';
 import { UserPicker } from '../divisions/UserPicker';
+import { AddUserModal } from './AddUserModal';
 import { ADMIN_SURFACE, StatusPill } from './AdminUi';
 import { useAdminUserMutations, useAdminUsers } from './hooks';
 
@@ -31,6 +33,7 @@ export function UsersSection() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<'active' | 'deactivated'>('active');
   const [deactivating, setDeactivating] = useState<AdminUserDTO | null>(null);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setQ(input.trim()), 250);
@@ -56,6 +59,9 @@ export function UsersSection() {
           {users.data && (
             <span className="text-[0.8125rem] font-medium tabular-nums text-ink-subtle">{users.data.length} pengguna</span>
           )}
+          <Button icon={<UserPlus className="h-4 w-4" />} onClick={() => setAdding(true)}>
+            Tambah pengguna
+          </Button>
           <Segmented
             value={status}
             onChange={setStatus}
@@ -99,6 +105,7 @@ export function UsersSection() {
           </table>
         </div>
       )}
+      {adding && <AddUserModal onClose={() => setAdding(false)} />}
       {deactivating && <DeactivateDialog user={deactivating} onClose={() => setDeactivating(null)} />}
     </div>
   );

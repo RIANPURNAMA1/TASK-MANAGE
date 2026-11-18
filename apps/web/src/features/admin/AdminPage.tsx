@@ -1,17 +1,9 @@
 import type { ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { MailPlus, ShieldCheck, Users } from 'lucide-react';
-import { InvitationsSection } from './InvitationsSection';
+import { ShieldCheck, Users } from 'lucide-react';
 import { UsersSection } from './UsersSection';
 
-type Tab = 'users' | 'invitations';
-
 export function AdminPage() {
-  const [params, setParams] = useSearchParams();
-  const tab: Tab = params.get('tab') === 'invitations' ? 'invitations' : 'users';
-  const select = (next: Tab) =>
-    setParams(next === 'users' ? {} : { tab: next }, { replace: true });
 
   return (
     <div className="flex min-h-full flex-col bg-paper">
@@ -20,18 +12,15 @@ export function AdminPage() {
           <ShieldCheck className="h-[22px] w-[22px] text-brand" aria-hidden />
           Admin organisasi
         </h1>
-        <p className="mt-2 text-[0.875rem] text-ink-muted">Kelola pengguna, peran, dan undangan.</p>
+        <p className="mt-2 text-[0.875rem] text-ink-muted">Tambah dan kelola pengguna serta peran.</p>
         <nav aria-label="Bagian admin" role="tablist" className="-mb-px mt-5 flex items-center gap-7">
-          <HeaderTab active={tab === 'users'} onClick={() => select('users')} icon={<Users />}>
+          <HeaderTab active onClick={() => undefined} icon={<Users />}>
             Pengguna
-          </HeaderTab>
-          <HeaderTab active={tab === 'invitations'} onClick={() => select('invitations')} icon={<MailPlus />}>
-            Undangan
           </HeaderTab>
         </nav>
       </header>
 
-      <div className="flex-1 px-8 py-6">{tab === 'users' ? <UsersSection /> : <InvitationsSection />}</div>
+      <div className="flex-1 px-8 py-6"><UsersSection /></div>
     </div>
   );
 }

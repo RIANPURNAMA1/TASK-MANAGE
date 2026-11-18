@@ -58,6 +58,7 @@ import type {
   CreateCommentInput,
   CreateDivisionInput,
   CreateInvitationInput,
+  CreateUserInput,
   CreateInvitationResponse,
   CreateListInput,
   CreateProjectInput,
@@ -367,6 +368,7 @@ export function createApiClient(options: HttpClientOptions) {
     admin: {
       users: (query: { q?: string; status?: 'active' | 'deactivated' } = {}) =>
         http.get<AdminUserDTO[]>('/admin/users', query),
+      createUser: (input: CreateUserInput) => http.post<AdminUserDTO>('/admin/users', input),
       setRole: (id: string, role: OrgRole) => http.patch<AdminUserDTO>(`/admin/users/${id}`, { role }),
       deactivate: (id: string, input: DeactivateUserInput) =>
         http.post<AdminUserDTO>(`/admin/users/${id}/deactivate`, input),

@@ -1,10 +1,10 @@
-import { createInvitationSchema, deactivateUserSchema, updateOrgRoleSchema } from '@nexus/shared';
+import { createInvitationSchema, createUserSchema, deactivateUserSchema, updateOrgRoleSchema } from '@nexus/shared';
 import { Router } from 'express';
 import { z } from 'zod';
 import { actorOf, clientIp, param, parseBody, parseQuery } from '../../lib/http';
 import { requireOrgAdmin } from '../access/access.service';
 import { createInvitation, listInvitations, revokeInvitation } from '../invitations/invitations.service';
-import { deactivateUser, listUsers, reactivateUser, revokeSessionsOf, setOrgRole } from './admin.service';
+import { createUser, deactivateUser, listUsers, reactivateUser, revokeSessionsOf, setOrgRole } from './admin.service';
 
 /** Owner/Admin only. Every handler re-checks the role in its service as well. */
 export const adminRouter = Router();
@@ -21,6 +21,10 @@ const usersQuerySchema = z.object({
 
 adminRouter.get('/users', async (req, res) => {
   res.json(await listUsers(actorOf(req), parseQuery(usersQuerySchema, req)));
+});
+
+adminRouter.post('/users', async (req, res) => {
+  res.status(201).json(await createUser(actorOf(req), parseBody(createUserSchema, req), clientIp(req)));
 });
 
 adminRouter.patch('/users/:id', async (req, res) => {

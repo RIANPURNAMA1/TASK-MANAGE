@@ -1,8 +1,9 @@
 import { prisma, toUserSummary, userSummarySelect, type Prisma, type Tx } from '@nexus/db';
-import { canAssignOrgRole, type AdminUserDTO, type OrgRole } from '@nexus/shared';
-import { badRequest, forbidden, notFound } from '../../lib/errors';
+import { canAssignOrgRole, type AdminUserDTO, type CreateUserInput, type OrgRole } from '@nexus/shared';
+import { badRequest, conflict, forbidden, notFound } from '../../lib/errors';
 import type { Actor } from '../access/actor';
 import { requireOrgAdmin } from '../access/access.service';
+import { hashPassword } from '../auth/password';
 import { revokeUserSessions } from '../auth/session.service';
 import { writeAudit } from './audit';
 
@@ -62,6 +63,41 @@ export async function listUsers(actor: Actor, query: { q?: string; status?: 'act
     orderBy: { name: 'asc' },
   });
   return rows.map(toDTO);
+}
+
+/**
+ * Admin membuat akun langsung: email dianggap terverifikasi, tidak ada email/undangan.
+ * Admin hanya boleh memberi peran yang berada di bawah perannya (`canAssignOrgRole`), dan tidak
+ * pernah OWNER. Admin menyampaikan kata sandi awal ke pengguna secara langsung.
+ */
+export async function createUser(actor: Actor, input: CreateUserInput, ip: string | null): Promise<AdminUserDTO> {
+  requireOrgAdmin(actor);
+  const role = input.role ?? 'MEMBER';
+  if (role === 'OWNER' || !canAssignOrgRole(actor.orgRole, role)) {
+    throw forbidden('Anda tidak bisa memberikan peran tersebut');
+  }
+  if (await prisma.user.findUnique({ where: { email: input.email } })) {
+    throw conflict('Email tersebut sudah terdaftar');
+  }
+  if (input.divisionId) {
+    const division = await prisma.division.findFirst({ where: { id: input.divisionId, orgId: actor.orgId, archivedAt: null } });
+    if (!division) throw notFound('Divisi');
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  const created = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: { email: input.email, name: input.name, passwordHash, emailVerifiedAt: new Date() },
+    });
+    await tx.orgMember.create({ data: { orgId: actor.orgId, userId: user.id, role } });
+    if (input.divisionId && role !== 'GUEST') {
+      await tx.divisionMember.create({ data: { divisionId: input.divisionId, userId: user.id } });
+    }
+    return user;
+  });
+
+  await writeAudit(actor, 'user.created', 'User', created.id, { email: created.email, role }, ip);
+  return loadUser(actor, created.id);
 }
 
 /**

@@ -281,6 +281,16 @@ export const createInvitationSchema = z.object({
 });
 export type CreateInvitationInput = z.input<typeof createInvitationSchema>;
 
+/** Admin menambahkan pengguna langsung (tanpa undangan/verifikasi email). */
+export const createUserSchema = z.object({
+  name: personName,
+  email,
+  password,
+  role: z.enum(ORG_ROLES).default('MEMBER'),
+  divisionId: idSchema.optional(),
+});
+export type CreateUserInput = z.input<typeof createUserSchema>;
+
 // ─── queries ──────────────────────────────────────────────────────────
 
 export const paginationSchema = z.object({
