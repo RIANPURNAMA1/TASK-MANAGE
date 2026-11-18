@@ -49,18 +49,18 @@
     --c-brand: 74 123 208; /* lighter #2652A0 so it reads on dark surfaces */
     --c-brand-hover: 96 143 222;
     --c-brand-strong: 140 175 232;
-    --c-brand-subtle: 30 45 75;
-    --c-brand-soft: 26 36 58;
+    --c-brand-subtle: 35 42 65;
+    --c-brand-soft: 28 34 52;
     --c-brand-border: 52 78 125;
-    --c-canvas: 21 28 43;
-    --c-canvas-deep: 15 21 34;
-    --c-surface: 26 34 51;
+    --c-canvas: 30 30 30; /* #1e1e1e */
+    --c-canvas-deep: 25 25 25; /* #191919 */
+    --c-surface: 37 37 37; /* #252525 */
     --c-ink: 226 232 240;
-    --c-ink-muted: 163 174 194;
-    --c-ink-subtle: 133 146 168;
-    --c-line: 44 54 72;
-    --c-line-subtle: 35 44 61;
-    --c-line-strong: 59 71 92;
+    --c-ink-muted: 163 163 163;
+    --c-ink-subtle: 128 128 128;
+    --c-line: 55 55 55; /* #373737 */
+    --c-line-subtle: 42 42 42; /* #2a2a2a */
+    --c-line-strong: 68 68 68; /* #444444 */
     --c-line-focus: 96 143 222;
     --c-success-soft: 16 52 44;
     --c-success-ink: 110 231 183;
@@ -70,9 +70,9 @@
     --c-danger-ink: 252 165 165;
     --c-info-soft: 23 37 66;
     --c-info-ink: 147 197 253;
-    --paper-overlay: 15 21 34;
-    --paper-base: #0f1522;
-    --scrollbar: #3b475c;
+    --paper-overlay: 25 25 25; /* #191919 */
+    --paper-base: #191919;
+    --scrollbar: #484848;
     --chart-1: #4a90e2;
     --chart-2: #f07a45;
   }

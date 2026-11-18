@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const API_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:4000';
@@ -6,12 +6,16 @@ const API_TARGET = process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:4000';
 /** Local API used by desktop builds when VITE_API_URL isn't set (CI sets the production URL). */
 const DESKTOP_DEFAULT_API = 'http://localhost:4000/api/v1';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  // process.env wins (CI), then .env.desktop in this folder, then the local default.
+  const fileEnv = loadEnv(mode, process.cwd(), 'VITE_');
+  const desktopApi = process.env.VITE_API_URL ?? fileEnv.VITE_API_URL ?? DESKTOP_DEFAULT_API;
+  return {
   plugins: [react()],
   // The desktop app is served from tauri://localhost, so it needs an absolute API URL.
   define:
     mode === 'desktop'
-      ? { 'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL ?? DESKTOP_DEFAULT_API) }
+      ? { 'import.meta.env.VITE_API_URL': JSON.stringify(desktopApi) }
       : {},
   server: {
     port: 5173,
@@ -35,4 +39,5 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-}));
+  };
+});
