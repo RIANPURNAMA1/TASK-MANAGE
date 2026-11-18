@@ -7,7 +7,7 @@ import {
   type InvitationDTO,
   type InvitationPreview,
 } from '@nexus/shared';
-import { env } from '../../config/env';
+import { config, env } from '../../config/env';
 import { randomToken, sha256 } from '../../lib/crypto';
 import { AppError, conflict, forbidden, notFound } from '../../lib/errors';
 import { enqueueEmail } from '../../lib/queue';
@@ -151,7 +151,7 @@ export async function acceptInvitation(token: string, input: AcceptInvitationInp
         email,
         name: input.name,
         passwordHash,
-        emailVerifiedAt: isEmailInvite ? new Date() : null,
+        emailVerifiedAt: isEmailInvite || !config.requireEmailVerification ? new Date() : null,
       },
     });
     await tx.orgMember.create({ data: { orgId: invitation.orgId, userId: created.id, role: invitation.role } });
@@ -161,7 +161,7 @@ export async function acceptInvitation(token: string, input: AcceptInvitationInp
     return created;
   });
 
-  if (!isEmailInvite) {
+  if (!isEmailInvite && config.requireEmailVerification) {
     await sendVerificationEmail(user.id);
     return { userId: user.id, session: null };
   }

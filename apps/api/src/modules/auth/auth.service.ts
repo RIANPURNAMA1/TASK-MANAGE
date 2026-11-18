@@ -1,6 +1,7 @@
 import { prisma } from '@nexus/db';
 import type { LoginInput, ResetPasswordInput, SetupInput } from '@nexus/shared';
 import { RateLimiterRes } from 'rate-limiter-flexible';
+import { config } from '../../config/env';
 import { AppError } from '../../lib/errors';
 import { enqueueEmail } from '../../lib/queue';
 import { createLimiter, tooManyRequests } from '../../lib/rate-limit';
@@ -41,7 +42,7 @@ export async function login(input: LoginInput, device: DeviceInfo) {
   if (user.deactivatedAt) {
     throw new AppError(403, 'ACCOUNT_DEACTIVATED', 'Akun Anda telah dinonaktifkan. Hubungi admin.');
   }
-  if (!user.emailVerifiedAt) {
+  if (config.requireEmailVerification && !user.emailVerifiedAt) {
     throw new AppError(403, 'EMAIL_NOT_VERIFIED', 'Email belum diverifikasi. Cek kotak masuk Anda.');
   }
 

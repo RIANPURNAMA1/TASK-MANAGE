@@ -47,6 +47,12 @@ const schema = z
       .default('false')
       .transform((v) => v === 'true'),
 
+    /** `true` = akun baru dari link undangan harus verifikasi email dulu. Bawaan `false`: langsung bisa login. */
+    REQUIRE_EMAIL_VERIFICATION: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+
     SMTP_HOST: optional,
     SMTP_PORT: z.coerce.number().int().default(587),
     SMTP_USER: z.string().default(''),
@@ -93,6 +99,7 @@ export const config = {
   isProduction: env.NODE_ENV === 'production',
   isTest: env.NODE_ENV === 'test',
   redisEnabled: Boolean(env.REDIS_URL),
+  requireEmailVerification: env.REQUIRE_EMAIL_VERIFICATION,
   googleEnabled: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REDIRECT_URI),
   accessTokenTtlSeconds: 15 * 60,
   refreshTokenTtlDays: 30,
